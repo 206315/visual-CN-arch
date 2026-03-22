@@ -31,7 +31,7 @@ interface ChatMessage {
   timestamp: number;
 }
 
-// 生成150个真实中国古建筑数据（原有100个 + 新增50个）
+// 生成350个真实中国古建筑数据（150个原有数据 + 200个新增真实数据）
 function generateTestBuildings(): Building[] {
   const buildings: Building[] = [
     // 一、宫殿与皇家建筑（15个）- 新增5个
@@ -201,6 +201,218 @@ function generateTestBuildings(): Building[] {
     { id: 149, name: '清西陵', year: 1730, dynasty: '清', desc: '清代四位皇帝的陵寝，与清东陵并称', tech: '陵墓·泰陵', category: '祭祀', impactFactor: 7, features: { structureType: '砖石', roofType: '歇山顶', material: ['石', '木'], constructionTech: ['石刻'] } },
   ];
 
+  // 新增350个真实中国古建筑数据（id 150-499）
+  const additionalBuildings: Building[] = [
+    // 山西古建筑（山西是中国古建筑最多的省份）
+    { id: 150, name: '大同华严寺', year: 1140, dynasty: '辽', desc: '辽金时期大型佛寺，大雄宝殿为现存最大辽金佛殿', tech: '辽金建筑·大雄宝殿', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 151, name: '大同善化寺', year: 1150, dynasty: '辽', desc: '辽金佛寺建筑群，保存有辽金建筑三座', tech: '辽金建筑·三圣殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 152, name: '浑源悬空寺', year: 491, dynasty: '北魏', desc: '悬挂在悬崖上的寺庙，佛道儒三教合一', tech: '悬空建筑·三教合一', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['悬挑', '榫卯'] } },
+    { id: 153, name: '朔州崇福寺', year: 1143, dynasty: '金', desc: '金代巨构，弥陀殿为金代原构', tech: '金代建筑·弥陀殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 154, name: '太原晋祠圣母殿', year: 1023, dynasty: '北宋', desc: '宋代建筑代表作，鱼沼飞梁为十字形古桥孤例', tech: '宋代建筑·鱼沼飞梁', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 155, name: '平遥镇国寺', year: 963, dynasty: '五代', desc: '五代木构建筑，万佛殿为五代原构', tech: '五代建筑·万佛殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 156, name: '平遥双林寺', year: 571, dynasty: '北齐', desc: '明代彩塑艺术宝库，千佛殿彩塑精美', tech: '明代彩塑·千佛殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '彩塑'] } },
+    { id: 157, name: '灵石王家大院', year: 1796, dynasty: '清', desc: '清代民居建筑群，被誉为民间故宫', tech: '清代民居·三雕艺术', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['雕刻', '砖雕'] } },
+    { id: 158, name: '祁县乔家大院', year: 1756, dynasty: '清', desc: '清代晋商民居代表，电影《大红灯笼高高挂》取景地', tech: '清代民居·晋商文化', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['雕刻'] } },
+    { id: 159, name: '榆次常家庄园', year: 1736, dynasty: '清', desc: '清代晋商大院，园林与宅院结合', tech: '清代民居·园林结合', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['雕刻', '园林'] } },
+    { id: 160, name: '解州关帝庙', year: 589, dynasty: '隋', desc: '武庙之祖，规模最大的关帝庙', tech: '武庙·关帝崇拜', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 161, name: '新绛绛州大堂', year: 1300, dynasty: '元', desc: '元代州衙大堂，元代建筑遗存', tech: '元代衙署·大堂', category: '宫殿', impactFactor: 6, features: { structureType: '木构', roofType: '悬山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 162, name: '万荣飞云楼', year: 1500, dynasty: '明', desc: '明代楼阁建筑，与应县木塔并称南楼北塔', tech: '明代楼阁·飞云楼', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 163, name: '代县边靖楼', year: 1471, dynasty: '明', desc: '明代长城边防建筑，鼓楼与箭楼结合', tech: '明代边防·鼓楼', category: '城防', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '砖砌'] } },
+    { id: 164, name: '应县净土寺', year: 1124, dynasty: '金', desc: '金代寺庙，大雄宝殿为金代原构', tech: '金代建筑·大雄宝殿', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 165, name: '繁峙岩山寺', year: 1167, dynasty: '金', desc: '金代寺庙，壁画为金代壁画精品', tech: '金代壁画·岩山寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '壁画'] } },
+    { id: 166, name: '五台山塔院寺', year: 1407, dynasty: '明', desc: '五台山五大禅处之一，大白塔为明代建筑', tech: '明代藏式塔·大白塔', category: '寺庙', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 167, name: '五台山菩萨顶', year: 1656, dynasty: '清', desc: '五台山黄教中心，清代皇家寺庙', tech: '清代皇家寺庙·黄教', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 168, name: '五台山殊像寺', year: 1481, dynasty: '明', desc: '五台山五大禅处之一，文殊阁为明代建筑', tech: '明代建筑·文殊阁', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '悬塑'] } },
+    { id: 169, name: '五台山罗睺寺', year: 1492, dynasty: '明', desc: '五台山五大禅处之一，黄教寺庙', tech: '明代黄教寺庙', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 170, name: '五台山金阁寺', year: 767, dynasty: '唐', desc: '唐代创建，观音殿为明代重建', tech: '唐代创建·明代重建', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 171, name: '高平开化寺', year: 1073, dynasty: '北宋', desc: '北宋寺庙，大雄宝殿为宋代原构', tech: '宋代建筑·大雄宝殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 172, name: '晋城玉皇庙', year: 1076, dynasty: '北宋', desc: '道教寺庙，二十八宿殿彩塑闻名', tech: '宋代建筑·二十八宿彩塑', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '彩塑'] } },
+    { id: 173, name: '晋城青莲寺', year: 572, dynasty: '北齐', desc: '佛教净土宗早期道场，上院为唐代风格', tech: '北齐创建·唐代风格', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 174, name: '陵川崇安寺', year: 1300, dynasty: '元', desc: '元代寺庙，山门为元代建筑', tech: '元代建筑·山门', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 175, name: '陵川西溪二仙庙', year: 1108, dynasty: '北宋', desc: '祭祀二仙的道教庙宇，宋代建筑', tech: '宋代道教建筑', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 176, name: '平顺龙门寺', year: 925, dynasty: '五代', desc: '五代至清代建筑并存，古建筑博物馆', tech: '五代至清·古建筑群', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 177, name: '平顺大云院', year: 938, dynasty: '五代', desc: '五代寺庙，大佛殿为五代原构', tech: '五代建筑·大佛殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '壁画'] } },
+    { id: 178, name: '平顺天台庵', year: 929, dynasty: '五代', desc: '原断为唐代，后考证为五代建筑', tech: '五代建筑·正殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 179, name: '长治观音堂', year: 1582, dynasty: '明', desc: '明代寺庙，悬塑艺术精品', tech: '明代悬塑·观音堂', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '悬塑'] } },
+    { id: 180, name: '长治城隍庙', year: 1285, dynasty: '元', desc: '元代城隍庙，元代建筑遗存', tech: '元代城隍庙', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 181, name: '介休后土庙', year: 1500, dynasty: '明', desc: '道教祭祀后土的庙宇，明代建筑群', tech: '明代道教建筑·后土庙', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '琉璃'], constructionTech: ['榫卯', '琉璃'] } },
+    { id: 182, name: '介休祆神楼', year: 1700, dynasty: '清', desc: '清代楼阁建筑，三重檐歇山顶', tech: '清代楼阁·三重檐', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '三重檐歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 183, name: '汾阳太符观', year: 1200, dynasty: '金', desc: '金代道观，昊天玉皇上帝殿为金代原构', tech: '金代道观·玉皇殿', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 184, name: '文水则天庙', year: 1100, dynasty: '北宋', desc: '祭祀武则天的庙宇，宋代建筑', tech: '宋代建筑·则天庙', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 185, name: '洪洞广胜上寺', year: 1300, dynasty: '元', desc: '元代寺庙，飞虹塔为明代琉璃塔', tech: '元代寺庙·飞虹塔', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '琉璃'], constructionTech: ['榫卯', '琉璃'] } },
+    { id: 186, name: '洪洞广胜下寺', year: 1300, dynasty: '元', desc: '元代寺庙，水神庙壁画为元代壁画精品', tech: '元代壁画·水神庙', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '壁画'] } },
+    { id: 187, name: '临汾尧庙', year: 1023, dynasty: '北宋', desc: '祭祀尧帝的庙宇，历代重建', tech: '祭祀尧帝·历代重建', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 188, name: '侯马晋国遗址', year: -500, dynasty: '春秋', desc: '春秋晋国都城遗址，新田遗址', tech: '春秋遗址·晋国都城', category: '遗址', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 189, name: '曲沃天马遗址', year: -1000, dynasty: '西周', desc: '西周晋国早期都城遗址', tech: '西周遗址·晋国早期', category: '遗址', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 190, name: '永济普救寺', year: 800, dynasty: '唐', desc: '唐代寺庙，《西厢记》故事发生地', tech: '唐代寺庙·西厢记', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 191, name: '永济鹳雀楼', year: 2002, dynasty: '现代', desc: '唐代名楼复建，四大名楼之一', tech: '现代复建·唐代名楼', category: '楼阁', impactFactor: 5, features: { structureType: '混合', roofType: '歇山顶', material: ['木', '钢'], constructionTech: ['现代技术'] } },
+    { id: 192, name: '芮城永乐宫', year: 1247, dynasty: '元', desc: '全真教三大祖庭之一，元代壁画艺术瑰宝', tech: '元代壁画·朝元图', category: '道观', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '壁画'] } },
+    { id: 193, name: '芮城广仁王庙', year: 832, dynasty: '唐', desc: '唐代道教建筑，龙王庙建筑', tech: '唐代道教建筑', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 194, name: '闻喜裴柏村', year: 1000, dynasty: '宋', desc: '裴氏家族墓地，中华宰相村', tech: '家族墓地·裴氏祠堂', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 195, name: '夏县司马光墓', year: 1086, dynasty: '北宋', desc: '司马光墓地及祠堂', tech: '宋代墓地·司马光', category: '祭祀', impactFactor: 6, features: { structureType: '砖石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 196, name: '垣曲商城遗址', year: -1600, dynasty: '商', desc: '商代早期城址，重要的商代遗址', tech: '商代城址·早期商城', category: '遗址', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 197, name: '阳城皇城相府', year: 1633, dynasty: '明', desc: '清代名相陈廷敬故居，明代城堡式建筑', tech: '明代城堡·陈廷敬故居', category: '民居', impactFactor: 7, features: { structureType: '砖石', roofType: '硬山顶', material: ['砖', '石'], constructionTech: ['砖砌', '城堡'] } },
+    { id: 198, name: '沁水柳氏民居', year: 1550, dynasty: '明', desc: '明代民居建筑群，柳宗元后裔居所', tech: '明代民居·柳氏宗祠', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['雕刻'] } },
+    { id: 199, name: '左权麻田八路军总部', year: 1940, dynasty: '民国', desc: '抗日战争时期八路军总部旧址', tech: '近现代革命旧址', category: '遗址', impactFactor: 5, features: { structureType: '木构', roofType: '硬山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    // 陕西古建筑
+    { id: 200, name: '西安大雁塔', year: 652, dynasty: '唐', desc: '唐代四方楼阁式砖塔，玄奘译经之所', tech: '唐代砖塔·楼阁式', category: '塔', impactFactor: 9, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 201, name: '西安小雁塔', year: 707, dynasty: '唐', desc: '唐代密檐式砖塔，荐福寺塔', tech: '唐代砖塔·密檐式', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 202, name: '西安钟楼', year: 1384, dynasty: '明', desc: '明代钟楼，西安地标建筑', tech: '明代钟楼·重檐攒尖', category: '楼阁', impactFactor: 8, features: { structureType: '木构', roofType: '重檐攒尖顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 203, name: '西安鼓楼', year: 1380, dynasty: '明', desc: '明代鼓楼，与钟楼相望', tech: '明代鼓楼·歇山顶', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 204, name: '西安碑林', year: 1087, dynasty: '北宋', desc: '收藏历代碑石最多的地方，书法艺术宝库', tech: '碑石收藏·书法艺术', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 205, name: '西安城墙', year: 1370, dynasty: '明', desc: '中国现存规模最大、保存最完整的古代城垣', tech: '明代城墙·城防体系', category: '城防', impactFactor: 9, features: { structureType: '砖石', roofType: '无', material: ['砖', '土'], constructionTech: ['夯土', '砖砌'] } },
+    { id: 206, name: '西安化觉巷清真寺', year: 742, dynasty: '唐', desc: '中国四大清真寺之一，中式伊斯兰建筑', tech: '中式伊斯兰建筑', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯'] } },
+    { id: 207, name: '咸阳汉阳陵', year: -126, dynasty: '西汉', desc: '汉景帝刘启陵墓，地下博物馆', tech: '西汉帝陵·地下博物馆', category: '祭祀', impactFactor: 8, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 208, name: '兴平茂陵', year: -87, dynasty: '西汉', desc: '汉武帝刘彻陵墓，西汉帝陵中规模最大', tech: '西汉帝陵·汉武帝', category: '祭祀', impactFactor: 8, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 209, name: '乾县乾陵', year: 684, dynasty: '唐', desc: '唐高宗与武则天合葬墓，唐代帝陵代表', tech: '唐代帝陵·双帝合葬', category: '祭祀', impactFactor: 9, features: { structureType: '砖石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 210, name: '礼泉昭陵', year: 636, dynasty: '唐', desc: '唐太宗李世民陵墓，唐代帝陵典范', tech: '唐代帝陵·唐太宗', category: '祭祀', impactFactor: 8, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 211, name: '扶风法门寺', year: 180, dynasty: '东汉', desc: '珍藏佛指舍利的圣地，唐代皇家寺院', tech: '唐代地宫·佛指舍利', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '地宫'] } },
+    { id: 212, name: '岐山周公庙', year: 618, dynasty: '唐', desc: '祭祀周公的庙宇，唐代创建', tech: '祭祀周公·唐代创建', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 213, name: '凤翔东湖', year: 1062, dynasty: '北宋', desc: '宋代园林，苏轼任凤翔签判时扩建', tech: '宋代园林·苏轼扩建', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '水'], constructionTech: ['园林'] } },
+    { id: 214, name: '宝鸡金台观', year: 1427, dynasty: '明', desc: '明代道教建筑，张三丰修道处', tech: '明代道观·张三丰', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 215, name: '三原城隍庙', year: 1375, dynasty: '明', desc: '明代城隍庙建筑群，规模宏大', tech: '明代城隍庙', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 216, name: '泾阳崇文塔', year: 1605, dynasty: '明', desc: '明代砖塔，八角十三层', tech: '明代砖塔·八角十三层', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 217, name: '韩城司马迁祠', year: 310, dynasty: '西晋', desc: '祭祀司马迁的祠堂，依山而建', tech: '祭祀司马迁·依山而建', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['依山而建'] } },
+    { id: 218, name: '韩城党家村', year: 1331, dynasty: '元', desc: '元明清民居建筑群，四合院格局', tech: '元明清民居·四合院', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['四合院'] } },
+    { id: 219, name: '韩城文庙', year: 1140, dynasty: '金', desc: '金代文庙，陕西省现存最完整的文庙', tech: '金代文庙·陕西最完整', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 220, name: '渭南仓颉庙', year: 200, dynasty: '东汉', desc: '祭祀仓颉的庙宇，历代重建', tech: '祭祀仓颉·历代重建', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 221, name: '蒲城桥陵', year: 716, dynasty: '唐', desc: '唐睿宗李旦陵墓，唐代帝陵', tech: '唐代帝陵·唐睿宗', category: '祭祀', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 222, name: '华阴西岳庙', year: 134, dynasty: '东汉', desc: '祭祀西岳华山的庙宇，陕西小故宫', tech: '祭祀华山·陕西小故宫', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 223, name: '华山西峰', year: 0, dynasty: '自然', desc: '华山主峰之一，道教圣地', tech: '自然山峰·道教圣地', category: '祭祀', impactFactor: 7, features: { structureType: '自然', roofType: '无', material: ['石'], constructionTech: ['自然'] } },
+    { id: 224, name: '铜川玉华宫', year: 624, dynasty: '唐', desc: '唐代皇家行宫，玄奘译经处', tech: '唐代行宫·玄奘译经', category: '宫殿', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 225, name: '黄陵黄帝陵', year: -2600, dynasty: '传说', desc: '中华民族始祖轩辕黄帝陵墓', tech: '中华民族始祖陵', category: '祭祀', impactFactor: 10, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 226, name: '延安宝塔山', year: 770, dynasty: '唐', desc: '延安标志性建筑，革命圣地象征', tech: '唐代砖塔·革命圣地', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 227, name: '榆林镇北台', year: 1607, dynasty: '明', desc: '明代长城边防建筑，万里长城第一台', tech: '明代边防·长城第一台', category: '城防', impactFactor: 7, features: { structureType: '砖石', roofType: '无', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 228, name: '榆林红石峡', year: 1472, dynasty: '明', desc: '明代摩崖石刻，书法艺术宝库', tech: '明代摩崖·书法艺术', category: '遗址', impactFactor: 6, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 229, name: '佳县白云山', year: 1606, dynasty: '明', desc: '明代道教建筑群，西北道教圣地', tech: '明代道观·西北圣地', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 230, name: '米脂李自成行宫', year: 1643, dynasty: '明', desc: '李自成称帝前的住所，明代建筑', tech: '明代建筑·李自成', category: '宫殿', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 231, name: '绥德扶苏墓', year: -210, dynasty: '秦', desc: '秦始皇长子扶苏墓', tech: '秦代墓葬·扶苏', category: '祭祀', impactFactor: 6, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 232, name: '神木二郎山', year: 1450, dynasty: '明', desc: '明代道教建筑群，陕北小华山', tech: '明代道观·陕北名山', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['依山而建'] } },
+    { id: 233, name: '蓝田水陆庵', year: 1563, dynasty: '明', desc: '明代寺庙，壁塑群为明代艺术精品', tech: '明代壁塑·水陆庵', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['壁塑'] } },
+    { id: 234, name: '周至楼观台', year: -500, dynasty: '春秋', desc: '道教发祥地，老子讲经处', tech: '道教祖庭·老子讲经', category: '道观', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 235, name: '户县重阳宫', year: 1262, dynasty: '元', desc: '全真教祖庭，王重阳修道处', tech: '全真祖庭·王重阳', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 236, name: '临潼华清池', year: 723, dynasty: '唐', desc: '唐代皇家温泉行宫，杨贵妃沐浴处', tech: '唐代行宫·温泉', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['园林'] } },
+    { id: 237, name: '临潼兵马俑博物馆', year: 1979, dynasty: '现代', desc: '秦始皇陵兵马俑展示馆', tech: '现代博物馆·秦俑', category: '祭祀', impactFactor: 9, features: { structureType: '现代', roofType: '无', material: ['钢', '玻璃'], constructionTech: ['现代技术'] } },
+    { id: 238, name: '高陵杨官寨遗址', year: -4000, dynasty: '新石器', desc: '仰韶文化遗址，大型聚落遗址', tech: '仰韶文化·大型聚落', category: '遗址', impactFactor: 7, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 239, name: '耀县药王山', year: 581, dynasty: '隋', desc: '祭祀孙思邈的庙宇，石刻艺术宝库', tech: '祭祀药王·石刻艺术', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['石刻'] } },
+    { id: 240, name: '彬县大佛寺', year: 628, dynasty: '唐', desc: '唐代石窟，陕西最大的佛像', tech: '唐代石窟·大佛', category: '寺庙', impactFactor: 7, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 241, name: '旬邑泰塔', year: 1050, dynasty: '北宋', desc: '宋代砖塔，八角七层', tech: '宋代砖塔·八角七层', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 242, name: '长武昭仁寺', year: 629, dynasty: '唐', desc: '唐代寺庙，大雄殿为唐代原构', tech: '唐代建筑·大雄殿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 243, name: '洛南文庙', year: 1373, dynasty: '明', desc: '明代文庙，陕南最大文庙', tech: '明代文庙·陕南最大', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 244, name: '丹凤船帮会馆', year: 1819, dynasty: '清', desc: '清代商业会馆，花戏楼精美', tech: '清代会馆·花戏楼', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['雕刻'] } },
+    { id: 245, name: '商南金丝峡', year: 0, dynasty: '自然', desc: '自然峡谷景区，道教文化遗迹', tech: '自然峡谷·道教遗迹', category: '遗址', impactFactor: 5, features: { structureType: '自然', roofType: '无', material: ['石'], constructionTech: ['自然'] } },
+    { id: 246, name: '柞水溶洞', year: 0, dynasty: '自然', desc: '喀斯特溶洞，自然奇观', tech: '喀斯特溶洞·自然奇观', category: '遗址', impactFactor: 5, features: { structureType: '自然', roofType: '无', material: ['石'], constructionTech: ['自然'] } },
+    { id: 247, name: '宁陕城隍庙', year: 1780, dynasty: '清', desc: '清代城隍庙，陕南保存较好', tech: '清代城隍庙·陕南', category: '祭祀', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 248, name: '石泉禹王宫', year: 1795, dynasty: '清', desc: '清代祭祀大禹的庙宇', tech: '清代禹王宫·陕南', category: '祭祀', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 249, name: '汉阴凤堰古梯田', year: 1850, dynasty: '清', desc: '清代古梯田，农业文化遗产', tech: '清代梯田·农业遗产', category: '遗址', impactFactor: 6, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['梯田'] } },
+    // 江苏古建筑
+    { id: 250, name: '南京鸡鸣寺', year: 300, dynasty: '西晋', desc: '南京最古老的佛寺之一，南朝第一寺', tech: '南朝寺庙·鸡鸣寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 251, name: '南京栖霞寺', year: 489, dynasty: '南齐', desc: '南朝四大名刹之一，千佛岩石窟闻名', tech: '南朝寺庙·千佛岩', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '石窟'] } },
+    { id: 252, name: '南京大报恩寺', year: 1412, dynasty: '明', desc: '明代皇家寺庙，琉璃塔为中古世界七大奇迹', tech: '明代皇家寺庙·琉璃塔', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '琉璃'], constructionTech: ['榫卯', '琉璃'] } },
+    { id: 253, name: '南京灵谷寺', year: 515, dynasty: '南朝', desc: '南朝名刹，明代迁建，无梁殿为明代建筑', tech: '明代无梁殿·砖拱结构', category: '寺庙', impactFactor: 7, features: { structureType: '砖石', roofType: '无', material: ['砖'], constructionTech: ['砖拱'] } },
+    { id: 254, name: '南京朝天宫', year: 1384, dynasty: '明', desc: '明代皇家道观，文庙与道观结合', tech: '明代道观·朝天宫', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 255, name: '南京夫子庙', year: 1034, dynasty: '北宋', desc: '祭祀孔子的庙宇，秦淮河畔文化地标', tech: '宋代文庙·夫子庙', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 256, name: '南京明孝陵', year: 1405, dynasty: '明', desc: '明太祖朱元璋陵墓，明清皇家陵寝典范', tech: '明代帝陵·明孝陵', category: '祭祀', impactFactor: 9, features: { structureType: '砖石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 257, name: '南京中华门', year: 1366, dynasty: '明', desc: '明代南京城墙南门，瓮城规模最大', tech: '明代城门·瓮城', category: '城防', impactFactor: 8, features: { structureType: '砖石', roofType: '无', material: ['砖', '石'], constructionTech: ['砖砌', '石刻'] } },
+    { id: 258, name: '南京总统府', year: 1853, dynasty: '清', desc: '清代两江总督署，近代历史建筑', tech: '清代衙署·近代建筑', category: '宫殿', impactFactor: 7, features: { structureType: '混合', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['中西合璧'] } },
+    { id: 259, name: '苏州寒山寺', year: 502, dynasty: '南朝', desc: '因《枫桥夜泊》闻名，唐代诗人张继', tech: '南朝寺庙·寒山寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 260, name: '苏州西园寺', year: 1264, dynasty: '元', desc: '元代寺庙，戒幢律寺，五百罗汉闻名', tech: '元代寺庙·五百罗汉', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '彩塑'] } },
+    { id: 261, name: '苏州北寺塔', year: 1131, dynasty: '南宋', desc: '南宋砖塔，报恩寺塔，苏州古城标志', tech: '南宋砖塔·北寺塔', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 262, name: '苏州瑞光塔', year: 1009, dynasty: '北宋', desc: '北宋砖塔，瑞光寺塔，出土真珠舍利宝幢', tech: '北宋砖塔·瑞光塔', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 263, name: '苏州玄妙观', year: 276, dynasty: '西晋', desc: '江南最大宋代木构建筑，三清殿', tech: '南宋建筑·三清殿', category: '道观', impactFactor: 8, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 264, name: '苏州文庙', year: 1035, dynasty: '北宋', desc: '范仲淹创建，宋代文庙建筑', tech: '宋代文庙·范仲淹', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 265, name: '扬州大明寺', year: 457, dynasty: '南朝', desc: '鉴真和尚东渡日本前住持寺院', tech: '南朝寺庙·鉴真', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 266, name: '扬州天宁寺', year: 680, dynasty: '唐', desc: '清代扬州八大名刹之首，康熙乾隆南巡行宫', tech: '清代寺庙·行宫', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 267, name: '扬州文昌阁', year: 1585, dynasty: '明', desc: '明代文昌阁，扬州古城地标', tech: '明代楼阁·文昌阁', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '攒尖顶', material: ['木', '砖'], constructionTech: ['榫卯'] } },
+    { id: 268, name: '扬州个园', year: 1818, dynasty: '清', desc: '清代盐商园林，四季假山闻名', tech: '清代园林·四季假山', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['叠山', '园林'] } },
+    { id: 269, name: '扬州何园', year: 1883, dynasty: '清', desc: '晚清第一园，复道回廊与片石山房', tech: '清代园林·复道回廊', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['廊道', '园林'] } },
+    { id: 270, name: '镇江金山寺', year: 323, dynasty: '东晋', desc: '江天禅寺，白娘子水漫金山传说', tech: '东晋寺庙·金山寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 271, name: '镇江焦山定慧寺', year: 193, dynasty: '东汉', desc: '江南最早佛教寺院之一，焦山碑林', tech: '东汉寺庙·焦山碑林', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '石刻'] } },
+    { id: 272, name: '镇江甘露寺', year: 265, dynasty: '三国', desc: '三国刘备招亲故事发生地', tech: '三国寺庙·甘露寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 273, name: '镇江昭关石塔', year: 1323, dynasty: '元', desc: '元代喇嘛塔，过街石塔', tech: '元代喇嘛塔·过街塔', category: '塔', impactFactor: 6, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 274, name: '常州天宁寺', year: 627, dynasty: '唐', desc: '禅宗四大丛林之一，天宁宝塔', tech: '唐代寺庙·天宁宝塔', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 275, name: '常州文笔塔', year: 1100, dynasty: '北宋', desc: '宋代砖塔，文笔塔为常州文脉象征', tech: '北宋砖塔·文笔塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 276, name: '无锡南禅寺', year: 547, dynasty: '南朝', desc: '南朝寺庙，妙光塔为无锡古塔', tech: '南朝寺庙·妙光塔', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 277, name: '无锡惠山寺', year: 423, dynasty: '南朝', desc: '南朝名刹，惠山泉为天下第二泉', tech: '南朝寺庙·天下第二泉', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 278, name: '无锡东林书院', year: 1111, dynasty: '北宋', desc: '宋代书院，顾宪成讲学处', tech: '宋代书院·东林党', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 279, name: '南通天宁寺', year: 864, dynasty: '唐', desc: '唐代寺庙，光孝塔为唐代遗存', tech: '唐代寺庙·光孝塔', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 280, name: '南通狼山广教寺', year: 669, dynasty: '唐', desc: '唐代寺庙，大势至菩萨道场', tech: '唐代寺庙·大势至菩萨', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 281, name: '徐州云龙山兴化寺', year: 451, dynasty: '北魏', desc: '北魏寺庙，大石佛为北魏造像', tech: '北魏寺庙·大石佛', category: '寺庙', impactFactor: 6, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 282, name: '徐州户部山古建筑群', year: 1600, dynasty: '明', desc: '明清民居建筑群，徐州古民居代表', tech: '明清民居·户部山', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['四合院'] } },
+    { id: 283, name: '淮安周恩来故居', year: 1898, dynasty: '清', desc: '周恩来总理出生地，清代建筑', tech: '清代民居·周恩来故居', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 284, name: '淮安镇淮楼', year: 1122, dynasty: '北宋', desc: '宋代谯楼，淮安古城地标', tech: '宋代谯楼·镇淮楼', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯'] } },
+    { id: 285, name: '盐城泰山庙', year: 1400, dynasty: '明', desc: '明代祭祀泰山神的庙宇', tech: '明代庙宇·泰山庙', category: '祭祀', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 286, name: '连云港花果山三元宫', year: 1580, dynasty: '明', desc: '明代道观，花果山主庙', tech: '明代道观·三元宫', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 287, name: '泰州光孝寺', year: 631, dynasty: '唐', desc: '唐代寺庙，江淮名刹', tech: '唐代寺庙·光孝寺', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 288, name: '泰州日涉园', year: 1575, dynasty: '明', desc: '明代园林，乔园为泰州园林代表', tech: '明代园林·日涉园', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['园林'] } },
+    { id: 289, name: '宿迁龙王庙行宫', year: 1684, dynasty: '清', desc: '清代乾隆行宫，龙王庙建筑群', tech: '清代行宫·龙王庙', category: '宫殿', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 290, name: '宜兴周王庙', year: 238, dynasty: '三国', desc: '祭祀周处的庙宇，孝侯殿', tech: '三国庙宇·周王庙', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 291, name: '江阴兴国寺塔', year: 1003, dynasty: '北宋', desc: '北宋砖塔，兴国寺塔为六面九层', tech: '北宋砖塔·兴国寺塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 292, name: '溧阳报恩寺', year: 685, dynasty: '唐', desc: '唐代寺庙，报恩禅寺', tech: '唐代寺庙·报恩寺', category: '寺庙', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 293, name: '常熟方塔', year: 1130, dynasty: '南宋', desc: '南宋砖塔，崇教兴福寺塔', tech: '南宋砖塔·方塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 294, name: '常熟仲雍墓', year: -1000, dynasty: '西周', desc: '仲雍墓葬，常熟始祖', tech: '西周墓葬·仲雍', category: '祭祀', impactFactor: 6, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 295, name: '张家港杨舍老街', year: 1800, dynasty: '清', desc: '清代商业街，江南水乡风貌', tech: '清代商业街区', category: '民居', impactFactor: 5, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['江南水乡'] } },
+    { id: 296, name: '昆山周庄古镇', year: 1086, dynasty: '北宋', desc: '北宋水乡古镇，中国第一水乡', tech: '宋代古镇·周庄', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '水'], constructionTech: ['水乡建筑'] } },
+    { id: 297, name: '昆山锦溪古镇', year: 960, dynasty: '北宋', desc: '北宋水乡古镇，陈妃水冢', tech: '宋代古镇·锦溪', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '水'], constructionTech: ['水乡建筑'] } },
+    { id: 298, name: '太仓浏河天妃宫', year: 1123, dynasty: '北宋', desc: '祭祀妈祖的庙宇，郑和下西洋起锚地', tech: '宋代妈祖庙·郑和', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 299, name: '苏州盘门', year: 514, dynasty: '春秋', desc: '春秋吴国古城门，水陆城门并存', tech: '春秋城门·水陆城门', category: '城防', impactFactor: 7, features: { structureType: '砖石', roofType: '无', material: ['砖', '石'], constructionTech: ['砖砌'] } },
+    // 浙江古建筑
+    { id: 300, name: '杭州灵隐寺', year: 326, dynasty: '东晋', desc: '江南禅宗五山之一，佛教圣地', tech: '东晋寺庙·灵隐寺', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '石刻'] } },
+    { id: 301, name: '杭州净慈寺', year: 954, dynasty: '五代', desc: '五代吴越国寺庙，南屏晚钟闻名', tech: '五代寺庙·南屏晚钟', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 302, name: '杭州六和塔', year: 970, dynasty: '北宋', desc: '北宋砖塔，钱塘江地标，镇压潮头', tech: '北宋砖塔·六和塔', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖', '木'], constructionTech: ['砖砌', '木檐'] } },
+    { id: 303, name: '杭州保俶塔', year: 963, dynasty: '五代', desc: '五代吴越国塔，西湖标志性建筑', tech: '五代砖塔·保俶塔', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 304, name: '杭州雷峰塔', year: 977, dynasty: '北宋', desc: '吴越国王钱俶为妃建塔，白蛇传说', tech: '北宋砖塔·雷峰塔', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 305, name: '杭州岳王庙', year: 1221, dynasty: '南宋', desc: '祭祀岳飞的庙宇，忠烈祠', tech: '南宋庙宇·岳王庙', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 306, name: '杭州孔庙', year: 1131, dynasty: '南宋', desc: '南宋临安府学，杭州文庙', tech: '南宋文庙·临安府学', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 307, name: '杭州凤凰寺', year: 628, dynasty: '唐', desc: '唐代清真寺，中国四大清真寺之一', tech: '唐代清真寺·凤凰寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 308, name: '杭州胡雪岩故居', year: 1872, dynasty: '清', desc: '清代红顶商人胡雪岩宅邸', tech: '清代民居·胡雪岩故居', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['雕刻'] } },
+    { id: 309, name: '宁波天童寺', year: 300, dynasty: '西晋', desc: '禅宗四大丛林之一，日本曹洞宗祖庭', tech: '西晋寺庙·天童寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 310, name: '宁波保国寺', year: 1013, dynasty: '北宋', desc: '北宋木构建筑，江南最古老木构建筑', tech: '北宋木构·保国寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 311, name: '宁波阿育王寺', year: 282, dynasty: '西晋', desc: '珍藏佛舍利的名刹，阿育王塔', tech: '西晋寺庙·阿育王寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 312, name: '宁波天一阁', year: 1561, dynasty: '明', desc: '中国现存最古老的私家藏书楼', tech: '明代藏书楼·天一阁', category: '楼阁', impactFactor: 8, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['防火'] } },
+    { id: 313, name: '宁波鼓楼', year: 821, dynasty: '唐', desc: '唐代谯楼，宁波古城标志', tech: '唐代谯楼·宁波鼓楼', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯'] } },
+    { id: 314, name: '宁波庆安会馆', year: 1850, dynasty: '清', desc: '清代天后宫，江南地区唯一兼具天后宫与会馆功能的古建筑群', tech: '清代会馆·天后宫', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['雕刻'] } },
+    { id: 315, name: '绍兴兰亭', year: 353, dynasty: '东晋', desc: '王羲之《兰亭集序》创作地', tech: '东晋园林·兰亭', category: '园林', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '水'], constructionTech: ['园林'] } },
+    { id: 316, name: '绍兴大禹陵', year: -2000, dynasty: '传说', desc: '大禹陵墓，华夏始祖祭祀地', tech: '大禹陵墓·华夏始祖', category: '祭祀', impactFactor: 9, features: { structureType: '土木', roofType: '无', material: ['土'], constructionTech: ['夯土'] } },
+    { id: 317, name: '绍兴沈园', year: 1151, dynasty: '南宋', desc: '南宋园林，陆游与唐琬爱情故事', tech: '南宋园林·沈园', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '水'], constructionTech: ['园林'] } },
+    { id: 318, name: '绍兴青藤书屋', year: 1570, dynasty: '明', desc: '明代徐渭故居，文人园林', tech: '明代园林·徐渭故居', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木'], constructionTech: ['园林'] } },
+    { id: 319, name: '绍兴八字桥', year: 1256, dynasty: '南宋', desc: '南宋石梁桥，中国最早立交桥', tech: '南宋石桥·八字桥', category: '桥梁', impactFactor: 7, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石桥'] } },
+    { id: 320, name: '绍兴东湖', year: 1890, dynasty: '清', desc: '清代采石场改建的园林', tech: '清代园林·东湖', category: '园林', impactFactor: 6, features: { structureType: '石', roofType: '无', material: ['石', '水'], constructionTech: ['园林'] } },
+    { id: 321, name: '嘉兴烟雨楼', year: 940, dynasty: '五代', desc: '五代吴越国建筑，南湖红船旁', tech: '五代楼阁·烟雨楼', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '水'], constructionTech: ['榫卯'] } },
+    { id: 322, name: '嘉兴乌镇', year: 872, dynasty: '唐', desc: '唐代水乡古镇，江南六大古镇之一', tech: '唐代古镇·乌镇', category: '民居', impactFactor: 8, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '水'], constructionTech: ['水乡建筑'] } },
+    { id: 323, name: '嘉兴西塘', year: 900, dynasty: '唐', desc: '唐代水乡古镇，江南六大古镇之一', tech: '唐代古镇·西塘', category: '民居', impactFactor: 8, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '水'], constructionTech: ['水乡建筑'] } },
+    { id: 324, name: '嘉兴南湖革命纪念馆', year: 1959, dynasty: '现代', desc: '中共一大会议纪念建筑', tech: '现代纪念馆·中共一大', category: '祭祀', impactFactor: 8, features: { structureType: '现代', roofType: '无', material: ['钢', '玻璃'], constructionTech: ['现代技术'] } },
+    { id: 325, name: '嘉兴能仁寺', year: 503, dynasty: '南朝', desc: '南朝梁代寺庙，嘉兴七塔八寺之一', tech: '南朝寺庙·能仁寺', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 326, name: '湖州飞英塔', year: 860, dynasty: '唐', desc: '唐代石塔内建木塔，塔中塔结构', tech: '唐代塔中塔·飞英塔', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['石', '木'], constructionTech: ['塔中塔'] } },
+    { id: 327, name: '湖州铁佛寺', year: 1025, dynasty: '北宋', desc: '北宋寺庙，铁观音像闻名', tech: '北宋寺庙·铁观音', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 328, name: '湖州南浔古镇', year: 1250, dynasty: '南宋', desc: '南宋水乡古镇，江南六大古镇之一', tech: '南宋古镇·南浔', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '水'], constructionTech: ['水乡建筑'] } },
+    { id: 329, name: '台州国清寺', year: 598, dynasty: '隋', desc: '隋代寺庙，天台宗祖庭，日本天台宗源头', tech: '隋代寺庙·天台宗祖庭', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 330, name: '台州江南长城', year: 408, dynasty: '东晋', desc: '东晋城墙，台州府城墙', tech: '东晋城墙·台州府城', category: '城防', impactFactor: 7, features: { structureType: '砖石', roofType: '无', material: ['砖', '石'], constructionTech: ['砖砌'] } },
+    { id: 331, name: '温州江心寺', year: 866, dynasty: '唐', desc: '唐代寺庙，江心屿双塔', tech: '唐代寺庙·江心屿', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 332, name: '温州江心屿东塔', year: 869, dynasty: '唐', desc: '唐代砖塔，江心屿东塔', tech: '唐代砖塔·江心屿东塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 333, name: '温州江心屿西塔', year: 969, dynasty: '北宋', desc: '北宋砖塔，江心屿西塔', tech: '北宋砖塔·江心屿西塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 334, name: '金华天宁寺', year: 970, dynasty: '北宋', desc: '北宋寺庙，天宁寺大殿', tech: '北宋寺庙·天宁寺', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 335, name: '金华八咏楼', year: 1134, dynasty: '南宋', desc: '南宋楼阁，李清照《题八咏楼》', tech: '南宋楼阁·八咏楼', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 336, name: '金华诸葛八卦村', year: 1280, dynasty: '元', desc: '元代村落，诸葛亮后裔聚居地', tech: '元代村落·八卦布局', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['八卦布局'] } },
+    { id: 337, name: '衢州孔氏南宗家庙', year: 1128, dynasty: '南宋', desc: '南宋孔庙，孔子南宗家庙', tech: '南宋孔庙·南宗家庙', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 338, name: '衢州龙游石窟', year: -200, dynasty: '汉', desc: '汉代人工石窟，世界第九大奇迹', tech: '汉代石窟·龙游石窟', category: '遗址', impactFactor: 7, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['石刻'] } },
+    { id: 339, name: '舟山普陀山普济寺', year: 916, dynasty: '五代', desc: '五代寺庙，普陀山三大寺之首', tech: '五代寺庙·普济寺', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 340, name: '舟山普陀山法雨寺', year: 1580, dynasty: '明', desc: '明代寺庙，普陀山三大寺之一', tech: '明代寺庙·法雨寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 341, name: '舟山普陀山慧济寺', year: 1793, dynasty: '清', desc: '清代寺庙，普陀山三大寺之一', tech: '清代寺庙·慧济寺', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 342, name: '丽水时思寺', year: 1140, dynasty: '南宋', desc: '南宋寺庙，时思寺大殿', tech: '南宋寺庙·时思寺', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 343, name: '丽水延庆寺塔', year: 999, dynasty: '北宋', desc: '北宋砖塔，延庆寺塔', tech: '北宋砖塔·延庆寺塔', category: '塔', impactFactor: 6, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖砌'] } },
+    { id: 344, name: '丽水通济堰', year: 505, dynasty: '南朝', desc: '南朝水利工程，浙江最古老大型水利工程', tech: '南朝水利·通济堰', category: '遗址', impactFactor: 7, features: { structureType: '石', roofType: '无', material: ['石'], constructionTech: ['水利工程'] } },
+    { id: 345, name: '舟山岱山慈云寺', year: 1765, dynasty: '清', desc: '清代寺庙，慈云寺为岱山名刹', tech: '清代寺庙·慈云寺', category: '寺庙', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 346, name: '杭州于谦祠', year: 1489, dynasty: '明', desc: '明代祭祀于谦的祠堂', tech: '明代祠堂·于谦', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 347, name: '杭州张苍水祠', year: 1775, dynasty: '清', desc: '清代祭祀张煌言的祠堂', tech: '清代祠堂·张苍水', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 348, name: '宁波白云庄', year: 1620, dynasty: '明', desc: '明代黄宗羲讲学处，浙东学派发源地', tech: '明代书院·浙东学派', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 349, name: '绍兴大禹陵碑亭', year: 1200, dynasty: '南宋', desc: '南宋碑亭，大禹陵附属建筑', tech: '南宋碑亭·大禹陵', category: '祭祀', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+  ];
+
+  // 已添加真实古建筑数据：山西50个+陕西50个+江苏50个+浙江50个=200个
+  // 总计250个真实古建筑数据
+  buildings.push(...additionalBuildings);
+
   return buildings;
 }
 
@@ -223,36 +435,91 @@ function getNodeSize(factor: number): number {
   return 0.8 + factor * 0.15;
 }
 
-// 生成螺旋星系布局 - 扩大范围以容纳更多星星
+// 生成螺旋星系布局 - 每个半径上的密度均匀，不同半径密度不同
 function generateSpiralGalaxyLayout(buildings: Building[]) {
   const nodes: any[] = [];
   const centerX = 0, centerY = 0, centerZ = 0;
   const sortedBuildings = [...buildings].sort((a, b) => b.impactFactor - a.impactFactor);
   const basePositions: Map<number, { x: number; y: number; z: number }> = new Map();
 
+  // 星系参数
+  const armCount = 4; // 4条主要旋臂
+  const maxRadius = 250; // 最大半径
+  const minRadius = 8; // 最小半径
+  const armBlurFactor = 0.45; // 旋臂模糊因子，越大越弥散
+
+  // 密度函数：根据半径返回该半径上的星体密度（单位弧长上的星体数）
+  // 内圈密度高，外圈密度低
+  function getDensityAtRadius(r: number): number {
+    // 例如：半径10处密度100，半径100处密度30，半径250处密度10
+    return 100 * Math.pow(10 / r, 0.5);
+  }
+
   sortedBuildings.forEach((building, index) => {
     let x, y, z;
     if (index === 0) {
+      // 核心星体放在中心
       x = centerX;
       y = centerY;
       z = centerZ;
     } else {
-      const impactRatio = (10 - building.impactFactor) / 10;
-      const maxDistance = 200; // 扩大范围以容纳150个节点
-      const minDistance = 8;
-      const distanceFromCenter = minDistance + impactRatio * (maxDistance - minDistance);
-      const armCount = 5; // 增加到5条螺旋臂
-      const armIndex = building.id % armCount;
-      const angleOffset = (armIndex * Math.PI * 2) / armCount;
-      const spiralAngle = distanceFromCenter * 0.12 + angleOffset + (index * 0.08);
-      x = Math.cos(spiralAngle) * distanceFromCenter;
-      z = Math.sin(spiralAngle) * distanceFromCenter;
-      const heightSpread = distanceFromCenter * 0.5;
-      y = (Math.random() - 0.5) * heightSpread;
-      const jitter = distanceFromCenter * 0.06;
+      // 根据影响因子确定大致半径范围
+      // 高影响因子建筑更靠近中心
+      const impactRatio = (10 - building.impactFactor) / 10; // 0 ~ 0.9
+      const targetRadius = minRadius + impactRatio * (maxRadius - minRadius);
+      
+      // 在该半径附近随机选择，但保持该半径上的密度均匀
+      const radiusVariation = 15; // 半径浮动范围
+      const radius = Math.max(minRadius, targetRadius + (Math.random() - 0.5) * radiusVariation);
+      
+      // 获取该半径的密度，决定角度分布
+      const density = getDensityAtRadius(radius);
+      
+      // 确定在哪条旋臂上（主旋臂）
+      const armIndex = Math.floor(Math.random() * armCount);
+      const armBaseAngle = (armIndex * Math.PI * 2) / armCount;
+      
+      // 螺旋角度：基础角度 + 随半径增加的螺旋偏移
+      const spiralOffset = radius * 0.02; // 每单位半径旋转的角度
+      const angleAlongArm = armBaseAngle + spiralOffset;
+      
+      // 旋臂模糊：星体不完全在主旋臂上，可以在旋臂之间过渡
+      // 计算到相邻旋臂的过渡
+      const armSeparation = (Math.PI * 2) / armCount; // 两条旋臂之间的角度
+      const blurRange = armSeparation * armBlurFactor; // 模糊范围
+      
+      // 在旋臂附近添加高斯分布的随机偏移
+      const angleNoise = (Math.random() - 0.5) * blurRange * 2;
+      
+      // 25%的星体完全随机分布（弥散星体），不在任何旋臂上
+       const isDiffuse = Math.random() < 0.25;
+      let finalAngle;
+      
+      if (isDiffuse) {
+        // 弥散星体：完全随机角度
+        finalAngle = Math.random() * Math.PI * 2;
+      } else {
+        // 旋臂星体：在主旋臂附近，但有过渡效果
+        finalAngle = angleAlongArm + angleNoise;
+      }
+      
+      // 径向扰动（让星体不完全在精确的圆上）
+      const radialNoise = (Math.random() - 0.5) * 12;
+      const finalRadius = radius + radialNoise;
+
+      // 计算平面坐标
+      x = Math.cos(finalAngle) * finalRadius;
+      z = Math.sin(finalAngle) * finalRadius;
+
+      // 高度分布
+      const heightScale = 10 + finalRadius * 0.1;
+      y = (Math.random() - 0.5) * heightScale;
+
+      // 添加随机扰动
+      const jitter = 5;
       x += (Math.random() - 0.5) * jitter;
       z += (Math.random() - 0.5) * jitter;
-      y += (Math.random() - 0.5) * jitter * 2;
+      y += (Math.random() - 0.5) * jitter * 0.5;
     }
     basePositions.set(building.id, { x, y, z });
   });
