@@ -4,11 +4,11 @@ import * as THREE from 'three';
 
 // 建筑技术特征
 interface TechFeatures {
-  structureType: string;      // 结构类型：木构、砖石、土木、混合
-  dougongType?: string;       // 斗拱类型：七踩、五踩、偷心造、计心造等
-  roofType?: string;          // 屋顶形式：庑殿顶、歇山顶、悬山顶、硬山顶、攒尖顶
-  material: string[];         // 主要材料：木、砖、石、瓦、土
-  constructionTech: string[]; // 建造技术：榫卯、斗拱、拱券、悬挑、叠涩
+  structureType: string;
+  dougongType?: string;
+  roofType?: string;
+  material: string[];
+  constructionTech: string[];
 }
 
 // 建筑数据接口
@@ -20,389 +20,195 @@ interface Building {
   desc: string;
   tech: string;
   category: string;
-  impactFactor: number; // 影响因子 0-10
-  features: TechFeatures; // 技术特征，用于计算相似度
+  impactFactor: number;
+  features: TechFeatures;
 }
 
-// 生成测试建筑数据
+// 对话消息接口
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+// 生成100个真实中国古建筑数据
 function generateTestBuildings(): Building[] {
   const buildings: Building[] = [
-    // 原始30个真实建筑 - 添加技术特征
-    { id: 0, name: '紫禁城', year: 1420, dynasty: '明', desc: '世界最大宫殿建筑群，980座建筑，8707间房', tech: '宫殿群布局', category: '宫殿', impactFactor: 10, features: { structureType: '木构', roofType: '庑殿顶', material: ['木', '砖', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 1, name: '故宫角楼', year: 1420, dynasty: '明', desc: '九梁十八柱七十二脊，220攒斗拱', tech: '榫卯精密', category: '宫殿', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 2, name: '太和殿', year: 1695, dynasty: '清', desc: '中国最大木构殿堂，面阔11间，进深5间', tech: '重檐庑殿顶', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '重檐庑殿顶', material: ['木', '砖', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 3, name: '天安门', year: 1651, dynasty: '清', desc: '明清皇城正门，重檐歇山顶，通高33.7米', tech: '城门建筑', category: '城门', impactFactor: 7, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 4, name: '蒯祥', year: 1398, dynasty: '明', desc: '明代建筑大师，紫禁城营造', tech: '木构技术', category: '人物', impactFactor: 6, features: { structureType: '木构', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 5, name: '营造法式', year: 1103, dynasty: '北宋', desc: '李诫编撰，中国古代建筑规范，3555条', tech: '标准化体系', category: '典籍', impactFactor: 10, features: { structureType: '木构', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱', '标准化'] } },
-    { id: 6, name: '天坛祈年殿', year: 1420, dynasty: '明', desc: '三层圆形殿堂，直径32.72米，28根金柱', tech: '圆形木构', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '攒尖顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 7, name: '应县木塔', year: 1056, dynasty: '辽', desc: '现存最高木塔，高67.31米，54种斗拱', tech: '斗拱减震', category: '塔', impactFactor: 9, features: { structureType: '木构', roofType: '攒尖顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '减震'] } },
-    { id: 8, name: '赵州桥', year: 605, dynasty: '隋', desc: '世界最古老敞肩拱石桥，跨度37.02米，李春设计', tech: '敞肩拱技术', category: '桥梁', impactFactor: 9, features: { structureType: '砖石', material: ['石'], constructionTech: ['拱券', '敞肩拱'] } },
-    { id: 9, name: '颐和园', year: 1750, dynasty: '清', desc: '皇家园林，290公顷，3000余间建筑', tech: '园林建筑', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 10, name: '李诫', year: 1065, dynasty: '北宋', desc: '营造法式编撰者', tech: '建筑理论', category: '人物', impactFactor: 8, features: { structureType: '木构', material: ['木'], constructionTech: ['榫卯', '斗拱', '标准化'] } },
-    { id: 11, name: '承德避暑山庄', year: 1703, dynasty: '清', desc: '世界最大皇家园林，564万平方米', tech: '山地园林', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 12, name: '独乐寺观音阁', year: 984, dynasty: '辽', desc: '现存最古老木结构高层建筑，23米高', tech: '木构抗震', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '暗层'] } },
-    { id: 13, name: '卢沟桥', year: 1192, dynasty: '金', desc: '11孔联拱石桥，长266.5米，485只石狮', tech: '联拱技术', category: '桥梁', impactFactor: 6, features: { structureType: '砖石', material: ['石'], constructionTech: ['拱券', '联拱'] } },
-    { id: 14, name: '佛光寺东大殿', year: 857, dynasty: '唐', desc: '中国现存最大唐代木构建筑，面阔7间', tech: '唐代斗拱', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '庑殿顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '七铺作'] } },
-    { id: 15, name: '南禅寺大殿', year: 782, dynasty: '唐', desc: '中国现存最古老木构建筑，面阔3间', tech: '唐代木构', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 16, name: '黄庭坚', year: 1045, dynasty: '北宋', desc: '书法家，建筑美学理论家', tech: '美学理论', category: '人物', impactFactor: 4, features: { structureType: '木构', material: ['木'], constructionTech: ['榫卯'] } },
-    { id: 17, name: '王安石', year: 1021, dynasty: '北宋', desc: '政治家，推动建筑改革', tech: '制度创新', category: '人物', impactFactor: 5, features: { structureType: '木构', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 18, name: '五台山南山寺', year: 1285, dynasty: '元', desc: '元代木构建筑群，7座殿堂', tech: '元代斗拱', category: '寺庙', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 19, name: '广济桥', year: 1171, dynasty: '南宋', desc: '世界首座开合桥，长518米，24墩18梭船', tech: '浮桥技术', category: '桥梁', impactFactor: 6, features: { structureType: '混合', material: ['石', '木'], constructionTech: ['拱券', '浮桥'] } },
-    { id: 20, name: '大雁塔', year: 652, dynasty: '唐', desc: '西安标志，7层方形砖塔，高64.5米', tech: '砖塔结构', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['叠涩'] } },
-    { id: 21, name: '圆明园', year: 1709, dynasty: '清', desc: '万园之园，350公顷，中西合璧', tech: '园林艺术', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 22, name: '苏州', year: -514, dynasty: '春秋', desc: '吴国都城，中国最早的城市规划典范', tech: '城市规划', category: '城市', impactFactor: 8, features: { structureType: '土木', material: ['土', '木'], constructionTech: ['夯土'] } },
-    { id: 23, name: '悬空寺', year: 491, dynasty: '北魏', desc: '建于悬崖峭壁，40座殿阁，距地50米', tech: '悬挑技术', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '悬挑', '插梁'] } },
-    { id: 24, name: '风雨桥', year: 1412, dynasty: '明', desc: '侗族特色桥梁，长64.4米，5座塔楼', tech: '廊桥技术', category: '桥梁', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '廊桥'] } },
-    { id: 25, name: '小雁塔', year: 707, dynasty: '唐', desc: '密檐式砖塔，原15层，现13层，高43米', tech: '密檐塔', category: '塔', impactFactor: 5, features: { structureType: '砖石', material: ['砖'], constructionTech: ['叠涩', '密檐'] } },
-    { id: 26, name: '拙政园', year: 1509, dynasty: '明', desc: '江南园林代表，5.2公顷，假山池沼', tech: '江南园林', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
-    { id: 27, name: '程阳风雨桥', year: 1916, dynasty: '民国', desc: '侗族廊桥，长77.76米，5座塔楼', tech: '民族建筑', category: '桥梁', impactFactor: 4, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '廊桥'] } },
-    { id: 28, name: '布达拉宫', year: 1645, dynasty: '清', desc: '藏式宫堡建筑，高117米，13层', tech: '藏式建筑', category: '宫殿', impactFactor: 7, features: { structureType: '混合', roofType: '平顶', material: ['石', '土', '木'], constructionTech: ['夯土', '碉楼'] } },
-    { id: 29, name: '永乐宫', year: 1247, dynasty: '元', desc: '道教宫观，壁画1000平方米', tech: '壁画艺术', category: '道观', impactFactor: 5, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    // 一、宫殿与皇家建筑（10个）
+    { id: 0, name: '北京故宫太和殿', year: 1695, dynasty: '清', desc: '中国现存最大的木结构大殿，紫禁城内规模最大、等级最高的建筑', tech: '重檐庑殿顶·金丝楠木', category: '宫殿', impactFactor: 10, features: { structureType: '木构', roofType: '重檐庑殿顶', material: ['木', '砖', '瓦', '石'], constructionTech: ['榫卯', '斗拱', '金龙和玺彩画'] } },
+    { id: 1, name: '北京故宫乾清宫', year: 1420, dynasty: '明', desc: '紫禁城内廷正殿，皇帝日常办公和居住之所', tech: '单檐歇山顶·铜龟鹤', category: '宫殿', impactFactor: 9, features: { structureType: '木构', roofType: '单檐歇山顶', material: ['木', '砖', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 2, name: '沈阳故宫大政殿', year: 1625, dynasty: '清', desc: '沈阳故宫核心建筑，八角重檐亭式建筑，八旗议政之所', tech: '八角重檐攒尖顶', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '重檐攒尖顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 3, name: '南京明故宫奉天殿', year: 1377, dynasty: '明', desc: '明代南京紫禁城正殿，北京故宫太和殿之原型（遗址）', tech: '重檐庑殿顶', category: '宫殿', impactFactor: 7, features: { structureType: '木构', roofType: '重檐庑殿顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 4, name: '西安大明宫含元殿', year: 663, dynasty: '唐', desc: '唐代长安大明宫正殿，"千官望长安，万国拜含元"（遗址）', tech: '高台建筑·龙尾道', category: '宫殿', impactFactor: 9, features: { structureType: '土木', roofType: '庑殿顶', material: ['木', '土'], constructionTech: ['夯土', '榫卯'] } },
+    { id: 5, name: '洛阳紫微城明堂', year: 695, dynasty: '唐', desc: '武则天时期建造的巨型礼制建筑，万象神宫（复建）', tech: '圆形多层木构', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '攒尖顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 6, name: '曲阜孔庙大成殿', year: 1499, dynasty: '明', desc: '孔庙核心建筑，祭祀孔子之处，中国三大古殿之一', tech: '重檐歇山顶·龙柱', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '斗拱', '龙柱雕刻'] } },
+    { id: 7, name: '泰山岱庙天贶殿', year: 1009, dynasty: '北宋', desc: '东岳大帝神殿，中国三大古殿之一，宋代最高建筑规格', tech: '重檐庑殿顶', category: '宫殿', impactFactor: 8, features: { structureType: '木构', roofType: '重檐庑殿顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 8, name: '承德避暑山庄澹泊敬诚殿', year: 1754, dynasty: '清', desc: '避暑山庄正宫正殿，金丝楠木建造，不施彩绘', tech: '楠木殿·素面', category: '宫殿', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['楠木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 9, name: '北京天坛祈年殿', year: 1420, dynasty: '明', desc: '明清皇帝祭天之所，圆形三重檐，中国古代建筑杰作', tech: '圆形三重檐攒尖顶', category: '祭祀', impactFactor: 9, features: { structureType: '木构', roofType: '三重檐攒尖顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+
+    // 二、寺庙与道观（20个）
+    { id: 10, name: '洛阳白马寺', year: 68, dynasty: '东汉', desc: '中国第一古刹，佛教传入中国后兴建的第一座官办寺院', tech: '中轴线布局·印度风格', category: '寺庙', impactFactor: 10, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 11, name: '登封少林寺常住院', year: 495, dynasty: '北魏', desc: '禅宗祖庭，天下第一名刹，少林功夫发源地', tech: '七进院落·禅宗布局', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 12, name: '西安大慈恩寺', year: 648, dynasty: '唐', desc: '玄奘法师译经之所，唯识宗祖庭', tech: '唐代寺院布局', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 13, name: '苏州寒山寺', year: 502, dynasty: '南朝', desc: '"姑苏城外寒山寺，夜半钟声到客船"，因《枫桥夜泊》闻名', tech: '江南寺院·诗碑', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 14, name: '杭州灵隐寺', year: 326, dynasty: '东晋', desc: '江南禅宗五山之一，佛教圣地，飞来峰造像闻名', tech: '山林寺院·石窟造像', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 15, name: '拉萨布达拉宫', year: 1645, dynasty: '清', desc: '世界上海拔最高的古代宫堡式建筑群，藏传佛教圣地', tech: '藏式碉楼·夯土墙', category: '寺庙', impactFactor: 10, features: { structureType: '混合', roofType: '平顶', material: ['石', '土', '木'], constructionTech: ['夯土', '碉楼'] } },
+    { id: 16, name: '拉萨大昭寺', year: 652, dynasty: '唐', desc: '藏传佛教最神圣的寺院，藏式与汉式建筑融合典范', tech: '藏汉合璧·金顶', category: '寺庙', impactFactor: 9, features: { structureType: '混合', roofType: '歇山顶', material: ['石', '木'], constructionTech: ['夯土', '榫卯'] } },
+    { id: 17, name: '日喀则扎什伦布寺', year: 1447, dynasty: '明', desc: '历代班禅驻锡之地，后藏地区最大的寺庙', tech: '藏式寺院·强巴佛殿', category: '寺庙', impactFactor: 8, features: { structureType: '混合', roofType: '平顶', material: ['石', '土'], constructionTech: ['夯土', '碉楼'] } },
+    { id: 18, name: '五台山佛光寺东大殿', year: 857, dynasty: '唐', desc: '中国现存最大的唐代木构建筑，唐代建筑第一瑰宝', tech: '唐代斗拱七铺作', category: '寺庙', impactFactor: 10, features: { structureType: '木构', roofType: '单檐庑殿顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '七铺作'] } },
+    { id: 19, name: '五台山南禅寺大殿', year: 782, dynasty: '唐', desc: '中国现存最古老的木构建筑，比佛光寺早75年', tech: '唐代木构', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '单檐歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 20, name: '蓟县独乐寺观音阁', year: 984, dynasty: '辽', desc: '现存最古老的木结构楼阁，观音塑像高16米', tech: '双层楼阁·叉柱造', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '叉柱造'] } },
+    { id: 21, name: '应县木塔', year: 1056, dynasty: '辽', desc: '世界现存最古老最高大的全木结构塔式建筑，佛宫寺释迦塔', tech: '八角五层·斗拱减震', category: '塔', impactFactor: 10, features: { structureType: '木构', roofType: '攒尖顶', material: ['木'], constructionTech: ['榫卯', '斗拱', '减震'] } },
+    { id: 22, name: '正定隆兴寺摩尼殿', year: 1052, dynasty: '北宋', desc: '十字形平面殿堂，宋代建筑孤例，鲁迅誉为"东方美神"', tech: '十字抱厦·宋画', category: '寺庙', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 23, name: '泉州开元寺', year: 686, dynasty: '唐', desc: '福建最大佛教寺院，东西塔为石构仿木建筑杰作', tech: '石塔仿木·印度教石刻', category: '寺庙', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '石仿木'] } },
+    { id: 24, name: '广州光孝寺', year: 401, dynasty: '东晋', desc: '岭南最古老的佛寺，禅宗六祖慧能剃度之所', tech: '岭南寺院·菩提树', category: '寺庙', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 25, name: '武当山紫霄宫', year: 1413, dynasty: '明', desc: '武当山保存最完整的宫殿之一，道教圣地', tech: '明代道教宫观', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 26, name: '青城山常道观', year: 746, dynasty: '唐', desc: '天师洞，张道陵修道之地，青城山核心道观', tech: '山地道观·天师洞', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['榫卯', '依山而建'] } },
+    { id: 27, name: '北京白云观', year: 739, dynasty: '唐', desc: '全真道龙门派祖庭，全真教第一丛林', tech: '道教宫观·全真祖庭', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 28, name: '龙虎山嗣汉天师府', year: 1368, dynasty: '明', desc: '历代天师居住和祀神之所，道教祖庭', tech: '道教王府·八卦布局', category: '道观', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 29, name: '成都青羊宫', year: 1263, dynasty: '南宋', desc: '川西第一道观，老子化身降临之处', tech: '川西道观·八卦亭', category: '道观', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+
+    // 三、园林建筑（15个）
+    { id: 30, name: '苏州拙政园', year: 1509, dynasty: '明', desc: '中国四大名园之首，江南古典园林代表作', tech: '以水见长·自然典雅', category: '园林', impactFactor: 9, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石', '水'], constructionTech: ['借景', '框景'] } },
+    { id: 31, name: '苏州留园', year: 1593, dynasty: '明', desc: '中国四大名园之一，以建筑艺术精湛著称', tech: '建筑精巧·奇石众多', category: '园林', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['空间序列', '框景'] } },
+    { id: 32, name: '苏州网师园', year: 1174, dynasty: '南宋', desc: '苏州园林中型古典山水宅园代表作', tech: '小园极则·宅园合一', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['小中见大'] } },
+    { id: 33, name: '苏州环秀山庄', year: 1798, dynasty: '清', desc: '以湖石假山闻名，戈裕良叠山代表作', tech: '湖石假山·戈氏叠山', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '湖石'], constructionTech: ['叠山', '框景'] } },
+    { id: 34, name: '扬州个园', year: 1818, dynasty: '清', desc: '以叠石艺术著名，四季假山闻名', tech: '四季假山·竹文化', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['叠山', '四季假山'] } },
+    { id: 35, name: '扬州何园', year: 1883, dynasty: '清', desc: '晚清第一园，复道回廊与片石山房', tech: '复道回廊·中西合璧', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['廊道', '空中走廊'] } },
+    { id: 36, name: '无锡寄畅园', year: 1506, dynasty: '明', desc: '江南四大名园之一，借景惠山龙光塔', tech: '借景典范·自然山水', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['借景', '自然山水'] } },
+    { id: 37, name: '南京瞻园', year: 1532, dynasty: '明', desc: '金陵第一园，明代中山王徐达府邸花园', tech: '明代王府园林', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['框景'] } },
+    { id: 38, name: '上海豫园', year: 1559, dynasty: '明', desc: '东南名园之冠，明代四川布政使潘允端私家园林', tech: '江南园林·玉玲珑', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['奇石', '框景'] } },
+    { id: 39, name: '杭州西湖郭庄', year: 1907, dynasty: '清', desc: '西湖第一名园，濒湖构台榭，俗称宋庄', tech: '濒湖园林·借景西湖', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['借景', '水景'] } },
+    { id: 40, name: '东莞可园', year: 1850, dynasty: '清', desc: '岭南四大名园之一，广东四大名园保存最完整', tech: '岭南园林·连房博厦', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['密集布局'] } },
+    { id: 41, name: '顺德清晖园', year: 1621, dynasty: '明', desc: '岭南四大名园之首，明代状元黄士俊府邸', tech: '岭南园林·木雕砖雕', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖', '石'], constructionTech: ['雕刻'] } },
+    { id: 42, name: '佛山梁园', year: 1796, dynasty: '清', desc: '岭南四大名园之一，以奇石、秀水、名帖著称', tech: '岭南园林·奇石收藏', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['奇石布置'] } },
+    { id: 43, name: '番禺余荫山房', year: 1871, dynasty: '清', desc: '岭南四大名园之一，小巧玲珑，布局精妙', tech: '岭南园林·藏而不露', category: '园林', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['小中见大'] } },
+    { id: 44, name: '北京颐和园谐趣园', year: 1751, dynasty: '清', desc: '颐和园中的园中园，仿无锡寄畅园而建', tech: '皇家园林·园中之园', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['借景'] } },
+
+    // 四、楼阁与亭台（15个）
+    { id: 45, name: '武汉黄鹤楼', year: 223, dynasty: '三国', desc: '"天下江山第一楼"，江南三大名楼之首（现楼1985年重建）', tech: '五层飞檐·钢筋混凝土仿木', category: '楼阁', impactFactor: 9, features: { structureType: '混合', roofType: '攒尖顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 46, name: '南昌滕王阁', year: 653, dynasty: '唐', desc: '"落霞与孤鹜齐飞，秋水共长天一色"（现阁1989年重建）', tech: '九层仿宋楼阁', category: '楼阁', impactFactor: 9, features: { structureType: '混合', roofType: '歇山顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 47, name: '岳阳岳阳楼', year: 220, dynasty: '三国', desc: '"先天下之忧而忧，后天下之乐而乐"，江南三大名楼唯一古建', tech: '盔顶式·四柱三层', category: '楼阁', impactFactor: 9, features: { structureType: '木构', roofType: '盔顶', material: ['木'], constructionTech: ['榫卯', '盔顶'] } },
+    { id: 48, name: '烟台蓬莱阁', year: 1061, dynasty: '北宋', desc: '"人间仙境"，中国古代四大名楼之一', tech: '双层木结构·海市蜃楼', category: '楼阁', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 49, name: '鹳雀楼', year: 557, dynasty: '北周', desc: '"白日依山尽，黄河入海流"（现楼2002年复建）', tech: '唐代风格·四层仿唐', category: '楼阁', impactFactor: 8, features: { structureType: '混合', roofType: '歇山顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 50, name: '昆明大观楼', year: 1690, dynasty: '清', desc: '"天下第一长联"，中国四大名楼之一', tech: '三重檐·长联文化', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '三重檐', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 51, name: '长沙天心阁', year: 1746, dynasty: '清', desc: '古城长沙的标志性建筑，仅存的古城遗迹', tech: '城上之阁·古城墙', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['城墙建筑'] } },
+    { id: 52, name: '西安钟鼓楼', year: 1384, dynasty: '明', desc: '中国现存形制最大、保存最完整的钟鼓楼', tech: '重檐三滴水·歇山顶', category: '楼阁', impactFactor: 8, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木', '砖'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 53, name: '北京正阳门箭楼', year: 1439, dynasty: '明', desc: '北京内城正南门，老北京的象征', tech: '城门箭楼·重檐歇山', category: '楼阁', impactFactor: 7, features: { structureType: '木构', roofType: '重檐歇山顶', material: ['木', '砖', '石'], constructionTech: ['城门建筑'] } },
+    { id: 54, name: '南京阅江楼', year: 2001, dynasty: '现代', desc: '"江南第一楼"，朱元璋意欲建楼但未成，现代补建', tech: '明代风格·现代复建', category: '楼阁', impactFactor: 6, features: { structureType: '混合', roofType: '歇山顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 55, name: '成都望江楼', year: 1889, dynasty: '清', desc: '为纪念女诗人薛涛而建，成都标志性建筑', tech: '崇丽阁·四角攒尖', category: '楼阁', impactFactor: 6, features: { structureType: '木构', roofType: '四角攒尖', material: ['木'], constructionTech: ['榫卯'] } },
+    { id: 56, name: '广州镇海楼', year: 1380, dynasty: '明', desc: '广州现存最完好、最具气势的古建筑，又名五层楼', tech: '镇海楼·五层红墙', category: '楼阁', impactFactor: 7, features: { structureType: '砖石', roofType: '歇山顶', material: ['砖', '石'], constructionTech: ['券洞'] } },
+    { id: 57, name: '济南超然楼', year: 2008, dynasty: '现代', desc: '"江北第一楼"，元代始建，现代重建，大明湖标志', tech: '七层楼阁·现代复建', category: '楼阁', impactFactor: 6, features: { structureType: '混合', roofType: '歇山顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 58, name: '苏州北寺塔', year: 1153, dynasty: '南宋', desc: '报恩寺塔，苏州古城最高点，砖身木檐', tech: '九层砖木·楼阁式塔', category: '塔', impactFactor: 7, features: { structureType: '混合', roofType: '攒尖顶', material: ['砖', '木'], constructionTech: ['砖仿木', '榫卯'] } },
+    { id: 59, name: '杭州六和塔', year: 970, dynasty: '北宋', desc: '钱塘江畔，中国现存最完好的砖木结构古塔之一', tech: '十三层木檐·砖芯', category: '塔', impactFactor: 8, features: { structureType: '混合', roofType: '攒尖顶', material: ['砖', '木'], constructionTech: ['砖仿木', '榫卯'] } },
+
+    // 五、塔窟与石窟（10个）
+    { id: 60, name: '洛阳龙门石窟', year: 493, dynasty: '北魏', desc: '中国四大石窟之一，石刻艺术宝库，10万余尊佛像', tech: '摩崖造像·北魏风格', category: '石窟', impactFactor: 10, features: { structureType: '石构', material: ['石'], constructionTech: ['石刻', '摩崖'] } },
+    { id: 61, name: '大同云冈石窟', year: 460, dynasty: '北魏', desc: '中国四大石窟之一，北魏皇家佛教艺术', tech: '昙曜五窟·印度犍陀罗', category: '石窟', impactFactor: 10, features: { structureType: '石构', material: ['石'], constructionTech: ['石刻', '高浮雕'] } },
+    { id: 62, name: '敦煌莫高窟', year: 366, dynasty: '前秦', desc: '世界最大的佛教艺术宝库，735个洞窟，4.5万平方米壁画', tech: '壁画艺术·彩塑', category: '石窟', impactFactor: 10, features: { structureType: '土木', material: ['土', '木'], constructionTech: ['壁画', '彩塑'] } },
+    { id: 63, name: '天水麦积山石窟', year: 384, dynasty: '后秦', desc: '东方雕塑陈列馆，以泥塑闻名于世', tech: '泥塑艺术·栈道', category: '石窟', impactFactor: 9, features: { structureType: '石构', material: ['石', '泥'], constructionTech: ['泥塑', '石刻'] } },
+    { id: 64, name: '重庆大足石刻', year: 650, dynasty: '唐', desc: '世界八大石窟之一，宝顶山千手观音最为著名', tech: '摩崖造像·宋代巅峰', category: '石窟', impactFactor: 9, features: { structureType: '石构', material: ['石'], constructionTech: ['石刻', '圆雕'] } },
+    { id: 65, name: '开封铁塔', year: 1049, dynasty: '北宋', desc: '祐国寺塔，开宝寺塔，"天下第一塔"，琉璃砖塔', tech: '琉璃砖塔·仿木结构', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['琉璃砖'], constructionTech: ['砖仿木'] } },
+    { id: 66, name: '杭州雷峰塔', year: 977, dynasty: '北宋', desc: '西湖十景之一，白娘子传说（2002年重建）', tech: '铜雕宝塔·现代重建', category: '塔', impactFactor: 7, features: { structureType: '混合', roofType: '攒尖顶', material: ['钢筋混凝土'], constructionTech: ['仿古建筑'] } },
+    { id: 67, name: '西安大雁塔', year: 652, dynasty: '唐', desc: '玄奘法师译经之所，西安标志性建筑', tech: '楼阁式砖塔·七层', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['砖仿木'] } },
+    { id: 68, name: '西安小雁塔', year: 707, dynasty: '唐', desc: '密檐式砖塔典范，荐福寺塔，地震裂缝自动愈合', tech: '密檐式砖塔·十三层', category: '塔', impactFactor: 7, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['密檐', '砖仿木'] } },
+    { id: 69, name: '大理三塔', year: 836, dynasty: '南诏', desc: '崇圣寺三塔，千寻塔居中，中国西南最古老建筑', tech: '密檐式空心砖塔', category: '塔', impactFactor: 8, features: { structureType: '砖石', roofType: '攒尖顶', material: ['砖'], constructionTech: ['密檐', '砖仿木'] } },
+
+    // 六、桥梁与水利（10个）
+    { id: 70, name: '赵州桥', year: 605, dynasty: '隋', desc: '安济桥，世界现存最古老的单孔敞肩石拱桥', tech: '敞肩拱·李春设计', category: '桥梁', impactFactor: 10, features: { structureType: '砖石', material: ['石'], constructionTech: ['敞肩拱', '单孔圆弧'] } },
+    { id: 71, name: '卢沟桥', year: 1192, dynasty: '金', desc: '北京现存最古老的石造联拱桥，七七事变发生地', tech: '联拱石桥·望柱石狮', category: '桥梁', impactFactor: 8, features: { structureType: '砖石', material: ['石'], constructionTech: ['联拱', '石狮'] } },
+    { id: 72, name: '洛阳桥', year: 1053, dynasty: '北宋', desc: '万安桥，中国现存最早的跨海梁式石桥', tech: '筏形基础·牡蛎固基', category: '桥梁', impactFactor: 8, features: { structureType: '砖石', material: ['石'], constructionTech: ['梁桥', '筏形基础'] } },
+    { id: 73, name: '广济桥', year: 1171, dynasty: '南宋', desc: '湘子桥，世界上最早的启闭式桥梁，十八梭船', tech: '浮桥结合·启闭式', category: '桥梁', impactFactor: 9, features: { structureType: '混合', material: ['石', '木'], constructionTech: ['浮桥', '石墩'] } },
+    { id: 74, name: '永济桥', year: 605, dynasty: '隋', desc: '安济桥（注：即赵州桥，河北赵县）', tech: '敞肩拱', category: '桥梁', impactFactor: 9, features: { structureType: '砖石', material: ['石'], constructionTech: ['敞肩拱'] } },
+    { id: 75, name: '苏州宝带桥', year: 816, dynasty: '唐', desc: '中国现存最长的多孔石拱桥，53孔连拱', tech: '连拱石桥·纤道', category: '桥梁', impactFactor: 7, features: { structureType: '砖石', material: ['石'], constructionTech: ['连拱'] } },
+    { id: 76, name: '都江堰南桥', year: 1878, dynasty: '清', desc: '灌县南桥，廊式古桥，都江堰景区标志', tech: '廊桥·雕梁画栋', category: '桥梁', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['廊桥'] } },
+    { id: 77, name: '丽江黑龙潭石拱桥', year: 1737, dynasty: '清', desc: '得月楼前的五孔石拱桥，纳西族建筑代表', tech: '石拱桥·纳西风格', category: '桥梁', impactFactor: 5, features: { structureType: '砖石', material: ['石'], constructionTech: ['拱桥'] } },
+    { id: 78, name: '晋祠鱼沼飞梁', year: 984, dynasty: '北宋', desc: '中国现存唯一的十字形古桥，晋祠三宝之一', tech: '十字形桥·石柱斗拱', category: '桥梁', impactFactor: 8, features: { structureType: '木石', roofType: '无', material: ['石', '木'], constructionTech: ['十字桥', '石柱'] } },
+    { id: 79, name: '桂林花桥', year: 1056, dynasty: '北宋', desc: '七星公园古桥，桥拱与水影形成满月', tech: '石拱桥·水中月影', category: '桥梁', impactFactor: 6, features: { structureType: '砖石', material: ['石'], constructionTech: ['拱桥'] } },
+
+    // 七、民居与村落建筑（10个）
+    { id: 80, name: '北京四合院', year: 1271, dynasty: '元', desc: '中国传统民居典范，中轴对称，围合院落（恭王府为代表）', tech: '中轴对称·四合院落', category: '民居', impactFactor: 8, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['榫卯', '四合院'] } },
+    { id: 81, name: '平遥古城民居', year: 1370, dynasty: '明', desc: '保存最完整的明清县城，晋商宅院代表', tech: '山西大院·票号建筑', category: '民居', impactFactor: 8, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['深宅大院'] } },
+    { id: 82, name: '乔家大院', year: 1756, dynasty: '清', desc: '北方民居建筑明珠，晋商第一院', tech: '双喜字布局·三雕', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖', '石'], constructionTech: ['雕刻', '院落'] } },
+    { id: 83, name: '王家大院', year: 1796, dynasty: '清', desc: '中国民间故宫，华夏民居第一宅', tech: '五巷六堡·红门堡', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖', '石'], constructionTech: ['堡寨', '三雕'] } },
+    { id: 84, name: '宏村承志堂', year: 1855, dynasty: '清', desc: '民间故宫，徽派建筑精华，盐商汪定贵住宅', tech: '徽派三雕·天井院落', category: '民居', impactFactor: 7, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖', '石'], constructionTech: ['徽派雕刻', '天井'] } },
+    { id: 85, name: '西递履福堂', year: 1691, dynasty: '清', desc: '清代徽商胡积堂的故居，徽派民居典型', tech: '徽派建筑·天井采光', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '硬山顶', material: ['木', '砖'], constructionTech: ['徽派', '马头墙'] } },
+    { id: 86, name: '福建土楼', year: 1200, dynasty: '宋', desc: '承启楼、振成楼等，东方建筑明珠，世界遗产', tech: '夯土围楼·聚族而居', category: '民居', impactFactor: 9, features: { structureType: '土木', roofType: '悬山顶', material: ['土', '木'], constructionTech: ['夯土', '环形围合'] } },
+    { id: 87, name: '开平碉楼', year: 1644, dynasty: '明', desc: '自力村碉楼群，中西合璧的多层塔楼', tech: '中西合璧·防御建筑', category: '民居', impactFactor: 7, features: { structureType: '混合', roofType: '攒尖顶', material: ['砖', '石', '混凝土'], constructionTech: ['防御', '西式风格'] } },
+    { id: 88, name: '延安窑洞', year: 200, dynasty: '汉', desc: '黄土高原特色民居，穴居文明的活化石（窑洞群）', tech: '穴居建筑·拱券结构', category: '民居', impactFactor: 6, features: { structureType: '土构', roofType: '拱顶', material: ['土'], constructionTech: ['挖掘', '拱券'] } },
+    { id: 89, name: '丽江纳西族民居', year: 1254, dynasty: '元', desc: '三坊一照壁，四合五天井，纳西族传统建筑', tech: '纳西民居·三坊一照壁', category: '民居', impactFactor: 6, features: { structureType: '木构', roofType: '悬山顶', material: ['木', '砖'], constructionTech: ['榫卯', '照壁'] } },
+
+    // 八、其他经典建筑（10个）
+    { id: 90, name: '八达岭长城', year: 1505, dynasty: '明', desc: '万里长城精华段，世界文化遗产，"玉关天堑"', tech: '砖石结构·敌楼烽火台', category: '城防', impactFactor: 10, features: { structureType: '砖石', roofType: '无', material: ['砖', '石'], constructionTech: ['夯土', '砖砌'] } },
+    { id: 91, name: '西安古城墙', year: 1370, dynasty: '明', desc: '中国现存规模最大、保存最完整的古代城垣', tech: '夯土包砖·防御体系', category: '城防', impactFactor: 9, features: { structureType: '砖石', roofType: '无', material: ['砖', '土'], constructionTech: ['夯土', '包砖'] } },
+    { id: 92, name: '南京明城墙', year: 1386, dynasty: '明', desc: '世界最长、规模最大的古代城垣，世界第一大城垣', tech: '城砖铭文·因地制宜', category: '城防', impactFactor: 8, features: { structureType: '砖石', roofType: '无', material: ['砖', '石'], constructionTech: ['砖砌', '依山而建'] } },
+    { id: 93, name: '平遥古城墙', year: 1370, dynasty: '明', desc: '保存最完整的县级古城墙，明清县城典范', tech: '方形城墙·瓮城', category: '城防', impactFactor: 7, features: { structureType: '砖石', roofType: '无', material: ['砖', '土'], constructionTech: ['夯土', '包砖'] } },
+    { id: 94, name: '北京国子监辟雍殿', year: 1783, dynasty: '清', desc: '皇帝讲学之所，"临雍讲学"的礼制建筑', tech: '重檐四角攒尖顶', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '四角攒尖顶', material: ['木', '瓦'], constructionTech: ['榫卯', '斗拱'] } },
+    { id: 95, name: '西安碑林', year: 1087, dynasty: '北宋', desc: '收藏碑石最多的汉族文化艺术宝库，石质书库', tech: '碑石陈列·古建筑', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['展陈建筑'] } },
+    { id: 96, name: '成都武侯祠', year: 223, dynasty: '三国', desc: '中国唯一君臣合祀祠庙，诸葛亮刘备纪念地', tech: '蜀汉建筑·红墙夹道', category: '祭祀', impactFactor: 8, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '砖'], constructionTech: ['祠堂建筑'] } },
+    { id: 97, name: '绍兴兰亭', year: 353, dynasty: '东晋', desc: '书圣王羲之《兰亭集序》创作地，书法圣地', tech: '园林祠堂·曲水流觞', category: '园林', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '石'], constructionTech: ['曲水', '碑亭'] } },
+    { id: 98, name: '泰山碧霞祠', year: 1009, dynasty: '北宋', desc: '泰山老奶奶庙，道教女神碧霞元君祖庭', tech: '高山建筑·铜顶', category: '祭祀', impactFactor: 7, features: { structureType: '木构', roofType: '歇山顶', material: ['木', '铜'], constructionTech: ['高山建筑'] } },
+    { id: 99, name: '黄山文殊院', year: 1613, dynasty: '明', desc: '黄山四大禅林之首，迎客松旁的古寺', tech: '高山寺庙·险峰建筑', category: '寺庙', impactFactor: 6, features: { structureType: '木构', roofType: '歇山顶', material: ['木'], constructionTech: ['依山而建'] } },
   ];
-
-  // 生成91个测试建筑 (id 30-120) - 添加技术特征
-  const categories = ['宫殿', '寺庙', '桥梁', '塔', '园林', '城门', '人物', '典籍', '祭祀', '城市', '道观'];
-  const dynasties = ['春秋', '隋', '唐', '辽', '金', '北宋', '南宋', '元', '明', '清', '北魏', '民国'];
-  const structureTypes = ['木构', '砖石', '土木', '混合'];
-  const roofTypes = ['庑殿顶', '歇山顶', '悬山顶', '硬山顶', '攒尖顶', '平顶'];
-  const materials = ['木', '砖', '石', '瓦', '土'];
-  const constructionTechs = ['榫卯', '斗拱', '拱券', '悬挑', '叠涩', '夯土', '廊桥'];
-  
-  for (let i = 30; i <= 120; i++) {
-    const impactFactor = Math.floor(Math.random() * 8) + 2; // 2-9
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const dynasty = dynasties[Math.floor(Math.random() * dynasties.length)];
-    const year = Math.floor(Math.random() * 2500) - 500; // -500到2000年
-    
-    // 根据类别确定结构类型
-    let structureType = structureTypes[Math.floor(Math.random() * structureTypes.length)];
-    if (category === '桥梁') structureType = Math.random() > 0.5 ? '砖石' : '混合';
-    if (category === '塔') structureType = Math.random() > 0.5 ? '木构' : '砖石';
-    
-    // 生成技术特征
-    const roofType = roofTypes[Math.floor(Math.random() * roofTypes.length)];
-    const materialCount = Math.floor(Math.random() * 3) + 1;
-    const material: string[] = [];
-    for (let m = 0; m < materialCount; m++) {
-      const mat = materials[Math.floor(Math.random() * materials.length)];
-      if (!material.includes(mat)) material.push(mat);
-    }
-    
-    const techCount = Math.floor(Math.random() * 3) + 1;
-    const constructionTech: string[] = [];
-    for (let t = 0; t < techCount; t++) {
-      const tech = constructionTechs[Math.floor(Math.random() * constructionTechs.length)];
-      if (!constructionTech.includes(tech)) constructionTech.push(tech);
-    }
-
-    buildings.push({
-      id: i,
-      name: `测试建筑${i - 29}`,
-      year,
-      dynasty,
-      desc: `测试建筑描述信息 - 第${i - 29}号测试案例`,
-      tech: `测试技术${Math.floor(Math.random() * 20) + 1}`,
-      category,
-      impactFactor,
-      features: {
-        structureType,
-        roofType,
-        material,
-        constructionTech,
-      },
-    });
-  }
 
   return buildings;
 }
 
 const BUILDINGS: Building[] = generateTestBuildings();
 
-// 建筑关联性计算参数权重配置
-const CORRELATION_WEIGHTS = {
-  region: 0.15,        // 地域
-  time: 0.15,          // 时间
-  designer: 0.20,      // 设计师/营造者
-  structure: 0.15,     // 结构类型
-  form: 0.15,          // 构型/形式
-  cultural: 0.10,      // 文化意义
-  category: 0.10,      // 建筑类型
-};
-
-// 计算两个建筑的地域关联度 (0-1)
-function calculateRegionCorrelation(b1: Building, b2: Building): number {
-  // 简化处理：同朝代建筑认为地域关联度较高
-  // 实际应用中应该使用真实的地域数据（省/城市）
-  const dynastyGroups: { [key: string]: string[] } = {
-    '北方': ['辽', '金', '元', '明', '清'],
-    '南方': ['南宋', '明', '清'],
-    '中原': ['春秋', '隋', '唐', '北宋'],
-    '西南': ['明', '清', '民国'],
-    '西北': ['北魏', '唐', '清'],
-  };
-  
-  for (const region in dynastyGroups) {
-    const hasB1 = dynastyGroups[region].includes(b1.dynasty);
-    const hasB2 = dynastyGroups[region].includes(b2.dynasty);
-    if (hasB1 && hasB2) return 1.0;
-  }
-  return 0.3; // 不同区域但有微弱关联
-}
-
-// 计算时间关联度 (0-1)
-function calculateTimeCorrelation(b1: Building, b2: Building): number {
-  const yearDiff = Math.abs(b1.year - b2.year);
-  // 时间越近关联度越高，使用指数衰减
-  // 100年内关联度 > 0.9, 500年内 > 0.6, 1000年内 > 0.36
-  return Math.exp(-yearDiff / 1000);
-}
-
-// 计算设计师关联度 (0-1)
-function calculateDesignerCorrelation(b1: Building, b2: Building): number {
-  // 简化：人物类别与相关建筑有强关联
-  if (b1.category === '人物' && b2.tech.includes(b1.name)) return 1.0;
-  if (b2.category === '人物' && b1.tech.includes(b2.name)) return 1.0;
-  
-  // 同朝代同类型建筑可能有相同营造传统
-  if (b1.dynasty === b2.dynasty && b1.category === b2.category) return 0.6;
-  
-  return 0.0;
-}
-
-// 计算结构关联度 (0-1)
-function calculateStructureCorrelation(b1: Building, b2: Building): number {
-  const f1 = b1.features;
-  const f2 = b2.features;
-  
-  let score = 0;
-  // 结构类型相同
-  if (f1.structureType === f2.structureType) score += 0.5;
-  // 屋顶形式相同
-  if (f1.roofType && f2.roofType && f1.roofType === f2.roofType) score += 0.3;
-  // 材料相似度
-  const commonMaterials = f1.material.filter(m => f2.material.includes(m));
-  const allMaterials = [...new Set([...f1.material, ...f2.material])];
-  if (allMaterials.length > 0) {
-    score += 0.2 * (commonMaterials.length / allMaterials.length);
-  }
-  
-  return score;
-}
-
-// 计算构型关联度 (0-1)
-function calculateFormCorrelation(b1: Building, b2: Building): number {
-  // 基于建造技术和建筑形式的相似度
-  const f1 = b1.features;
-  const f2 = b2.features;
-  
-  const commonTechs = f1.constructionTech.filter(t => f2.constructionTech.includes(t));
-  const allTechs = [...new Set([...f1.constructionTech, ...f2.constructionTech])];
-  
-  if (allTechs.length === 0) return 0;
-  return commonTechs.length / allTechs.length;
-}
-
-// 计算文化意义关联度 (0-1)
-function calculateCulturalCorrelation(b1: Building, b2: Building): number {
-  // 高影响因子建筑之间有文化关联
-  const impactDiff = Math.abs(b1.impactFactor - b2.impactFactor);
-  if (b1.impactFactor >= 8 && b2.impactFactor >= 8) return 0.8; // 都是顶级建筑
-  if (b1.category === b2.category) return 0.5; // 同类型建筑
-  return Math.max(0, 1 - impactDiff / 10) * 0.3;
-}
-
-// 计算类型关联度 (0-1)
-function calculateCategoryCorrelation(b1: Building, b2: Building): number {
-  return b1.category === b2.category ? 1.0 : 0.0;
-}
-
-// 综合关联性计算 - 使用指数加权
-// 公式: correlation = exp(k * (weightedScore - 1))
-// 这样高度相关的建筑分数会急剧上升，低相关的快速下降
-function calculateCorrelation(b1: Building, b2: Building): number {
-  const w = CORRELATION_WEIGHTS;
-  
-  // 计算各项得分
-  const regionScore = calculateRegionCorrelation(b1, b2) * w.region;
-  const timeScore = calculateTimeCorrelation(b1, b2) * w.time;
-  const designerScore = calculateDesignerCorrelation(b1, b2) * w.designer;
-  const structureScore = calculateStructureCorrelation(b1, b2) * w.structure;
-  const formScore = calculateFormCorrelation(b1, b2) * w.form;
-  const culturalScore = calculateCulturalCorrelation(b1, b2) * w.cultural;
-  const categoryScore = calculateCategoryCorrelation(b1, b2) * w.category;
-  
-  // 加权总分 (0-1)
-  const weightedScore = regionScore + timeScore + designerScore + 
-                       structureScore + formScore + culturalScore + categoryScore;
-  
-  // 使用指数函数：correlation = exp(3 * (score - 0.7))
-  // 这样 score = 0.9 → correlation ≈ 1.8
-  // score = 0.7 → correlation = 1.0
-  // score = 0.5 → correlation ≈ 0.55
-  // score = 0.3 → correlation ≈ 0.30
-  const k = 4; // 指数系数，越大区分度越高
-  const baseThreshold = 0.6; // 基准阈值
-  
-  const correlation = Math.exp(k * (weightedScore - baseThreshold));
-  
-  return Math.min(correlation, 3.0); // 上限为3.0
-}
-
-// 根据关联性生成连线 - 只保留高关联度的连线
-function generateLinksByCorrelation(
-  buildings: Building[], 
-  threshold: number = 1.0
-): { source: number; target: number; value: number }[] {
-  const links: { source: number; target: number; value: number }[] = [];
-  
-  for (let i = 0; i < buildings.length; i++) {
-    for (let j = i + 1; j < buildings.length; j++) {
-      const correlation = calculateCorrelation(buildings[i], buildings[j]);
-      
-      // 只保留超过阈值的强关联
-      if (correlation >= threshold) {
-        links.push({
-          source: buildings[i].id,
-          target: buildings[j].id,
-          value: correlation,
-        });
-      }
-    }
-  }
-  
-  return links;
-}
-
-// 影响因子到颜色的映射 - 真实恒星颜色（哈佛光谱分类）
-// 影响因子越高 = 恒星越亮越蓝（温度越高）
-// 影响因子越低 = 恒星越暗越红（温度越低）
+// 影响因子到颜色的映射
 function getImpactColor(factor: number): string {
-  // 高对比度颜色映射，让不同影响因子更容易区分
-  if (factor >= 10) return '#00D9FF'; // 最高影响 - 青色（最醒目）
-  if (factor >= 9) return '#4488FF';  // 极高影响 - 蓝色
-  if (factor >= 8) return '#9966FF';  // 很高影响 - 紫色
-  if (factor >= 7) return '#FF66CC';  // 高影响 - 粉色
-  if (factor >= 6) return '#FFCC00';  // 中高影响 - 金色
-  if (factor >= 5) return '#FF8833';  // 中等影响 - 橙色
-  if (factor >= 3) return '#FF4444';  // 较低影响 - 红色
-  return '#888888';                   // 低影响 - 灰色
+  if (factor >= 10) return '#00D9FF';
+  if (factor >= 9) return '#4488FF';
+  if (factor >= 8) return '#9966FF';
+  if (factor >= 7) return '#FF66CC';
+  if (factor >= 6) return '#FFCC00';
+  if (factor >= 5) return '#FF8833';
+  if (factor >= 3) return '#FF4444';
+  return '#888888';
 }
 
-// 影响因子到节点大小的映射 - 星星光点大小
+// 影响因子到节点大小的映射
 function getNodeSize(factor: number): number {
-  // 星星大小：影响大的稍微大一点，但都是小光点
   return 0.8 + factor * 0.15;
 }
 
-// 生成螺旋星系布局 - 高影响因子建筑靠近中心，有关联的建筑位置更近
+// 生成螺旋星系布局
 function generateSpiralGalaxyLayout(buildings: Building[]) {
   const nodes: any[] = [];
   const centerX = 0, centerY = 0, centerZ = 0;
-
-  // 第一步：计算所有建筑之间的关联性
-  const correlationMatrix: Map<string, number> = new Map();
-  for (let i = 0; i < buildings.length; i++) {
-    for (let j = i + 1; j < buildings.length; j++) {
-      const correlation = calculateCorrelation(buildings[i], buildings[j]);
-      // 只保留强关联 - 阈值设为 0.9
-      if (correlation >= 0.9) {
-        correlationMatrix.set(`${buildings[i].id}-${buildings[j].id}`, correlation);
-        correlationMatrix.set(`${buildings[j].id}-${buildings[i].id}`, correlation);
-      }
-    }
-  }
-
-  // 第二步：按影响因子排序（高到低）
   const sortedBuildings = [...buildings].sort((a, b) => b.impactFactor - a.impactFactor);
-
-  // 第三步：生成基础位置
   const basePositions: Map<number, { x: number; y: number; z: number }> = new Map();
 
   sortedBuildings.forEach((building, index) => {
     let x, y, z;
-
     if (index === 0) {
-      // 影响因子最高的建筑放在正中心
       x = centerX;
       y = centerY;
       z = centerZ;
     } else {
-      // 根据影响因子决定距离中心的距离
       const impactRatio = (10 - building.impactFactor) / 10;
       const maxDistance = 140;
       const minDistance = 8;
       const distanceFromCenter = minDistance + impactRatio * (maxDistance - minDistance);
-
-      // 螺旋臂布局
       const armCount = 3;
       const armIndex = building.id % armCount;
       const angleOffset = (armIndex * Math.PI * 2) / armCount;
       const spiralAngle = distanceFromCenter * 0.15 + angleOffset + (index * 0.1);
-
       x = Math.cos(spiralAngle) * distanceFromCenter;
       z = Math.sin(spiralAngle) * distanceFromCenter;
       const heightSpread = distanceFromCenter * 0.6;
       y = (Math.random() - 0.5) * heightSpread;
-
-      // 添加少量随机扰动
       const jitter = distanceFromCenter * 0.05;
       x += (Math.random() - 0.5) * jitter;
       z += (Math.random() - 0.5) * jitter;
       y += (Math.random() - 0.5) * jitter * 2;
     }
-
     basePositions.set(building.id, { x, y, z });
   });
 
-  // 第四步：根据关联性调整位置 - 让有关联的建筑靠近
-  const finalPositions: Map<number, { x: number; y: number; z: number }> = new Map(basePositions);
-  const pullDistance = 50; // 关联建筑拉近的目标距离
-
-  // 迭代几次让位置收敛
-  for (let iteration = 0; iteration < 3; iteration++) {
-    correlationMatrix.forEach((correlation, key) => {
-      const [id1, id2] = key.split('-').map(Number);
-      const pos1 = finalPositions.get(id1)!;
-      const pos2 = finalPositions.get(id2)!;
-
-      // 计算当前距离
-      const dx = pos2.x - pos1.x;
-      const dy = pos2.y - pos1.y;
-      const dz = pos2.z - pos1.z;
-      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-      // 如果距离太远，将两个节点向中间拉近
-      if (distance > pullDistance && distance > 0) {
-        const pullStrength = 0.3 * (correlation / 3.0);
-        const targetDistance = pullDistance * 0.8;
-        const moveDistance = (distance - targetDistance) * pullStrength;
-
-        const ratio = moveDistance / distance / 2;
-        const moveX = dx * ratio;
-        const moveY = dy * ratio;
-        const moveZ = dz * ratio;
-
-        // 影响因子高的建筑移动较少（保持中心地位）
-        const b1 = buildings.find(b => b.id === id1)!;
-        const b2 = buildings.find(b => b.id === id2)!;
-        const weight1 = b1.impactFactor / 10;
-        const weight2 = b2.impactFactor / 10;
-
-        pos1.x += moveX * (1 - weight1);
-        pos1.y += moveY * (1 - weight1);
-        pos1.z += moveZ * (1 - weight1);
-
-        pos2.x -= moveX * (1 - weight2);
-        pos2.y -= moveY * (1 - weight2);
-        pos2.z -= moveZ * (1 - weight2);
-      }
-    });
-  }
-
-  // 第五步：创建节点
   sortedBuildings.forEach((building) => {
-    const pos = finalPositions.get(building.id)!;
-
+    const pos = basePositions.get(building.id)!;
     nodes.push({
       id: building.id,
       name: building.name,
@@ -424,64 +230,119 @@ function generateSpiralGalaxyLayout(buildings: Building[]) {
     });
   });
 
-  // 第六步：生成连线 - 简化逻辑，只基于关联度和距离
-  const links: { source: number; target: number; value: number }[] = [];
-  const maxLinkDistance = 50; // 进一步缩短最大连线距离
+  return { nodes, links: [] };
+}
 
-  // 只生成强关联且距离合理的连线
-  correlationMatrix.forEach((correlation, key) => {
-    const [id1, id2] = key.split('-').map(Number);
-    if (id1 < id2) {
-      const pos1 = finalPositions.get(id1)!;
-      const pos2 = finalPositions.get(id2)!;
-      const dx = pos2.x - pos1.x;
-      const dy = pos2.y - pos1.y;
-      const dz = pos2.z - pos1.z;
-      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+// DeepSeek API 调用函数 - 支持多轮对话
+async function callDeepSeekAPI(
+  buildingName: string, 
+  messages: ChatMessage[],
+  isFirstQuestion: boolean = false
+): Promise<string> {
+  const API_KEY = 'sk-5733acc3f3e748efb2e91e4bad881a18';
+  const API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
-      // 只有距离足够近才连线
-      if (distance <= maxLinkDistance) {
-        links.push({
-          source: id1,
-          target: id2,
-          value: correlation,
-        });
-      }
+  const apiMessages = [
+    {
+      role: 'system',
+      content: '你是一位中国古代建筑专家，擅长用生动专业的语言介绍中国传统建筑的历史、文化和技艺。请根据用户的问题提供专业、详细但易懂的回答。'
     }
+  ];
+
+  // 添加历史消息
+  messages.forEach(msg => {
+    apiMessages.push({
+      role: msg.role,
+      content: msg.content
+    });
   });
 
-  return { nodes, links };
+  // 如果是第一个问题，添加建筑上下文
+  if (isFirstQuestion) {
+    apiMessages.push({
+      role: 'user',
+      content: `请详细介绍中国古代建筑"${buildingName}"，包括以下方面：
+1. 建筑的历史背景和文化意义
+2. 建筑的结构特点和技术亮点
+3. 建筑的历史变迁和保护现状
+4. 该建筑在中国建筑史上的地位和影响
+
+请以专业、生动、易懂的方式介绍，字数控制在500-800字左右。`
+    });
+  }
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: apiMessages,
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API请求失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || '暂无AI介绍内容';
+  } catch (error) {
+    console.error('DeepSeek API调用失败:', error);
+    return '抱歉，AI服务暂时不可用，请稍后重试。';
+  }
 }
 
 export default function TimelinePage() {
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [hoverNode, setHoverNode] = useState<any>(null);
+  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [showAIPrompt, setShowAIPrompt] = useState(false);
   const fgRef = useRef<any>(null);
   const nodeMeshesRef = useRef<Map<number, THREE.Group>>(new Map());
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const graphData = useMemo(() => generateSpiralGalaxyLayout(BUILDINGS), []);
 
+  // 滚动到最新消息
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, aiLoading]);
+
   // 设置控制器限制
   useEffect(() => {
-    // 延迟执行，确保 ForceGraph3D 已经初始化
     const timer = setTimeout(() => {
       if (fgRef.current) {
         const controls = fgRef.current.controls();
         if (controls) {
-          controls.minDistance = 120;  // 最小距离（调大后最近时能看到星系全貌）
-          controls.maxDistance = 800;  // 最大距离（防止拉得太远）
+          controls.minDistance = 120;
+          controls.maxDistance = 800;
           controls.update();
         }
       }
     }, 100);
-
     return () => clearTimeout(timer);
   }, []);
 
   // 节点点击处理
   const handleNodeClick = useCallback((node: any) => {
     setSelectedNode(node);
-    // 聚焦到选中节点
+    setShowAIPrompt(true);
+    setChatMessages([]);
+    setShowAIDialog(false);
+    setInputMessage('');
     if (fgRef.current && node) {
       fgRef.current.cameraPosition(
         { x: node.x + 40, y: node.y + 40, z: node.z + 40 },
@@ -491,79 +352,121 @@ export default function TimelinePage() {
     }
   }, []);
 
-  // 更新所有节点大小以保持屏幕固定大小
+  // 处理首次AI提问
+  const handleAskAI = async () => {
+    if (!selectedNode) return;
+    setShowAIPrompt(false);
+    setShowAIDialog(true);
+    setAiLoading(true);
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: `请详细介绍一下「${selectedNode.name}」`,
+      timestamp: Date.now(),
+    };
+
+    setChatMessages([userMessage]);
+
+    const response = await callDeepSeekAPI(selectedNode.name, [userMessage], true);
+
+    const aiMessage: ChatMessage = {
+      role: 'assistant',
+      content: response,
+      timestamp: Date.now(),
+    };
+
+    setChatMessages(prev => [...prev, aiMessage]);
+    setAiLoading(false);
+  };
+
+  // 处理追加提问
+  const handleFollowUpQuestion = async () => {
+    if (!inputMessage.trim() || !selectedNode || aiLoading) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: inputMessage.trim(),
+      timestamp: Date.now(),
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setAiLoading(true);
+
+    // 构建完整对话历史
+    const conversationHistory = [...chatMessages, userMessage];
+
+    const response = await callDeepSeekAPI(selectedNode.name, conversationHistory, false);
+
+    const aiMessage: ChatMessage = {
+      role: 'assistant',
+      content: response,
+      timestamp: Date.now(),
+    };
+
+    setChatMessages(prev => [...prev, aiMessage]);
+    setAiLoading(false);
+  };
+
+  // 回车发送
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleFollowUpQuestion();
+    }
+  };
+
+  // 关闭AI对话框
+  const closeAIDialog = () => {
+    setShowAIDialog(false);
+    setChatMessages([]);
+    setInputMessage('');
+    setShowAIPrompt(true);
+  };
+
+  // 更新所有节点大小
   const updateNodeScales = useCallback(() => {
     if (!fgRef.current) return;
-
     const camera = fgRef.current.camera();
     if (!camera) return;
-
-    // 目标屏幕大小（像素）- 更小的固定大小
-    const targetScreenSize = 3; // 3像素左右，更小的恒星
-
-    // 计算透视缩放因子
+    const targetScreenSize = 3;
     const fov = camera.fov * (Math.PI / 180);
     const tanFov = Math.tan(fov / 2);
-
-    // 获取控制器限制（如果已设置）
     const controls = fgRef.current.controls();
     const minDistance = controls?.minDistance || 120;
     const maxDistance = controls?.maxDistance || 800;
 
-    // 遍历所有节点 mesh，调整大小
     nodeMeshesRef.current.forEach((mesh, nodeId) => {
       const node = graphData.nodes.find((n: any) => n.id === nodeId);
       if (!node) return;
-
-      // 计算相机到节点的距离
       const nodePosition = new THREE.Vector3(node.x, node.y, node.z);
       let nodeDistance = camera.position.distanceTo(nodePosition);
-
-      // 限制距离在有效范围内，防止缩放失真
       nodeDistance = Math.max(minDistance, Math.min(maxDistance, nodeDistance));
-
-      // 计算需要的缩放比例，使节点在屏幕上保持固定大小
       const targetWorldSize = (targetScreenSize * 2 * nodeDistance * tanFov) / window.innerHeight;
-
-      // 基础大小（影响因子决定）
       const baseSize = 0.15 + (node.impactFactor / 10) * 0.25;
-
-      // 应用缩放，保持屏幕大小固定
       const scale = targetWorldSize / baseSize;
       mesh.scale.setScalar(scale);
     });
   }, [graphData]);
 
-  // 使用 requestAnimationFrame 确保每帧都更新大小
   useEffect(() => {
     let animationId: number;
-
     const animate = () => {
       updateNodeScales();
       animationId = requestAnimationFrame(animate);
     };
-
     animationId = requestAnimationFrame(animate);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
+    return () => cancelAnimationFrame(animationId);
   }, [updateNodeScales]);
 
-  // 节点悬停处理
   const handleNodeHover = useCallback((node: any) => {
     setHoverNode(node);
     document.body.style.cursor = node ? 'pointer' : 'default';
   }, []);
 
-  // 创建星星的函数
   const createStarMesh = (node: any, targetScale: number = 1) => {
     const group = new THREE.Group();
-
-    // 根据影响因子决定星星大小 - 更小的基础大小
     const baseSize = (0.15 + (node.impactFactor / 10) * 0.25) * targetScale;
-
-    // 核心 - 高亮白点
     const coreGeometry = new THREE.SphereGeometry(baseSize * 0.3, 12, 12);
     const coreMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -572,20 +475,14 @@ export default function TimelinePage() {
     });
     const core = new THREE.Mesh(coreGeometry, coreMaterial);
     group.add(core);
-
-    // 简化光晕 - 只有3层
     const glowSizes = [0.8, 1.5, 2.5];
     const glowOpacities = [0.6, 0.3, 0.12];
-
     for (let i = 0; i < 3; i++) {
       const size = baseSize * glowSizes[i];
       const opacity = glowOpacities[i];
-
-      // 颜色从白色渐变到恒星本色
       const color = new THREE.Color(node.color);
       const white = new THREE.Color(0xffffff);
       const finalColor = white.lerp(color, (i + 1) * 0.3);
-
       const glowGeometry = new THREE.SphereGeometry(size, 12, 12);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: finalColor,
@@ -597,30 +494,15 @@ export default function TimelinePage() {
       const glow = new THREE.Mesh(glowGeometry, glowMaterial);
       group.add(glow);
     }
-
     return group;
   };
 
-  // 自定义节点材质 - 使用球体实现真实星星效果
   const nodeThreeObject = useCallback((node: any) => {
     const group = createStarMesh(node, 1);
-
-    // 存储节点 mesh 引用，用于后续调整大小
     nodeMeshesRef.current.set(node.id, group);
-
     return group;
   }, []);
 
-  // 连线颜色 - 根据源节点的影响因子
-  const linkColor = useCallback((link: any) => {
-    const sourceNode = graphData.nodes.find(n => n.id === link.source.id || n.id === link.source);
-    if (sourceNode) {
-      return sourceNode.color;
-    }
-    return '#444444';
-  }, [graphData]);
-
-  // 影响因子说明 - 真实恒星光谱分类
   const impactLegend = [
     { factor: 10, color: '#00D9FF', label: '最高影响 (10)' },
     { factor: 9, color: '#4488FF', label: '极高影响 (9)' },
@@ -634,26 +516,26 @@ export default function TimelinePage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden">
-      {/* 标题 - 悬浮在星图上方 */}
+      {/* 标题 */}
       <div className="absolute top-16 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
         <h1 className="text-3xl md:text-4xl font-bold text-center tracking-wider pointer-events-auto"
             style={{ color: '#00D9FF', textShadow: '0 0 20px #00D9FF' }}>
           中国建筑史星图
         </h1>
         <p className="text-center text-gray-400 text-sm mt-2 tracking-widest pointer-events-auto">
-          每颗恒星代表一座建筑 · 颜色表示历史影响因子 · 共{BUILDINGS.length}座
+          每颗恒星代表一座建筑 · 颜色表示历史影响因子 · 共100座中国经典古建筑
         </p>
       </div>
 
-      {/* 3D 星图 - 全屏 */}
+      {/* 3D 星图 */}
       <div className="w-full h-full">
         <ForceGraph3D
           ref={fgRef}
           graphData={graphData}
           nodeThreeObject={nodeThreeObject}
-          linkColor={linkColor}
-          linkOpacity={0.4}
-          linkWidth={0.3}
+          linkColor={() => '#444444'}
+          linkOpacity={0}
+          linkWidth={0}
           backgroundColor="#000000"
           onNodeClick={handleNodeClick}
           onNodeHover={handleNodeHover}
@@ -667,7 +549,7 @@ export default function TimelinePage() {
         />
       </div>
 
-      {/* 影响因子图例 - 调整到底部左侧，避开操作说明 */}
+      {/* 影响因子图例 */}
       <div className="absolute bottom-16 left-6 bg-black/80 border border-gray-700 rounded-lg p-4 backdrop-blur-sm">
         <h3 className="text-sm font-bold mb-3" style={{ color: '#00D9FF' }}>影响因子</h3>
         <div className="space-y-2">
@@ -686,7 +568,7 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      {/* 选中节点信息面板 - 调整位置避开顶部标题 */}
+      {/* 选中节点信息面板 */}
       {selectedNode && (
         <div className="absolute top-28 right-6 w-80 bg-black/90 border border-gray-700 rounded-lg p-5 backdrop-blur-sm animate-fade-in">
           <button
@@ -730,14 +612,238 @@ export default function TimelinePage() {
 
           <p className="text-gray-300 text-sm leading-relaxed mb-3">{selectedNode.desc}</p>
 
-          <div className="bg-gray-900/50 px-3 py-2 rounded text-xs">
+          <div className="bg-gray-900/50 px-3 py-2 rounded text-xs mb-2">
+            <span className="text-gray-500">建筑类别：</span>
+            <span style={{ color: selectedNode.color }}>{selectedNode.category}</span>
+          </div>
+          
+          <div className="bg-gray-900/50 px-3 py-2 rounded text-xs mb-4">
             <span className="text-gray-500">核心技术：</span>
             <span style={{ color: selectedNode.color }}>{selectedNode.tech}</span>
+          </div>
+
+          {/* AI提问选项 */}
+          {showAIPrompt && (
+            <div className="border-t border-gray-700 pt-4">
+              <p className="text-sm text-gray-400 mb-3">💡 想要深入了解这座建筑？</p>
+              <button
+                onClick={handleAskAI}
+                className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                style={{
+                  background: `linear-gradient(135deg, ${selectedNode.color}33, ${selectedNode.color}11)`,
+                  border: `1px solid ${selectedNode.color}66`,
+                  color: selectedNode.color,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${selectedNode.color}55, ${selectedNode.color}22)`;
+                  e.currentTarget.style.boxShadow = `0 0 20px ${selectedNode.color}44`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${selectedNode.color}33, ${selectedNode.color}11)`;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                🤖 向AI提问获取详细介绍
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI对话框 - 支持多轮对话 */}
+      {showAIDialog && (
+        <div 
+          className="absolute top-28 left-6 w-[550px] max-w-[calc(100vw-100px)] bg-black/95 border rounded-lg backdrop-blur-sm overflow-hidden flex flex-col"
+          style={{ 
+            borderColor: selectedNode?.color || '#00D9FF',
+            boxShadow: `0 0 30px ${selectedNode?.color || '#00D9FF'}33, 0 0 60px ${selectedNode?.color || '#00D9FF'}11`,
+            maxHeight: 'calc(100vh - 150px)',
+          }}
+        >
+          {/* AI对话框标题栏 */}
+          <div 
+            className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
+            style={{ 
+              borderColor: `${selectedNode?.color || '#00D9FF'}33`,
+              background: `linear-gradient(135deg, ${selectedNode?.color || '#00D9FF'}22, transparent)` 
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: selectedNode?.color || '#00D9FF' }}
+              />
+              <span className="font-bold" style={{ color: selectedNode?.color || '#00D9FF' }}>
+                🤖 AI建筑导师
+              </span>
+              <span className="text-xs text-gray-500">· DeepSeek</span>
+              <span className="text-xs text-gray-600 ml-2">
+                正在讨论：{selectedNode?.name}
+              </span>
+            </div>
+            <button
+              onClick={closeAIDialog}
+              className="text-gray-500 hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* AI对话内容 - 可滚动区域 */}
+          <div 
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            style={{ maxHeight: 'calc(100vh - 280px)', minHeight: '300px' }}
+          >
+            {/* 欢迎提示 */}
+            {chatMessages.length === 0 && !aiLoading && (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <div className="text-4xl mb-3">🏛️</div>
+                <p className="text-sm">点击"向AI提问"开始了解这座建筑</p>
+              </div>
+            )}
+
+            {/* 对话消息列表 */}
+            {chatMessages.map((msg, index) => (
+              <div key={index} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                {/* 头像 */}
+                <div 
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${
+                    msg.role === 'user' 
+                      ? 'bg-gray-700 text-white' 
+                      : ''
+                  }`}
+                  style={msg.role === 'assistant' ? { 
+                    backgroundColor: `${selectedNode?.color || '#00D9FF'}33`,
+                    color: selectedNode?.color || '#00D9FF'
+                  } : {}}
+                >
+                  {msg.role === 'user' ? '我' : 'AI'}
+                </div>
+                
+                {/* 消息内容 */}
+                <div 
+                  className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                    msg.role === 'user' 
+                      ? 'rounded-tr-sm' 
+                      : 'rounded-tl-sm'
+                  }`}
+                  style={msg.role === 'user' 
+                    ? { 
+                        backgroundColor: `${selectedNode?.color || '#00D9FF'}44`,
+                        color: '#fff',
+                      }
+                    : { 
+                        backgroundColor: 'rgba(255,255,255,0.08)',
+                        color: '#e5e5e5',
+                      }
+                  }
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+
+            {/* 加载动画 */}
+            {aiLoading && (
+              <div className="flex gap-3">
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0"
+                  style={{ 
+                    backgroundColor: `${selectedNode?.color || '#00D9FF'}33`,
+                    color: selectedNode?.color || '#00D9FF'
+                  }}
+                >
+                  AI
+                </div>
+                <div 
+                  className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                >
+                  <div 
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{ backgroundColor: selectedNode?.color || '#00D9FF', animationDelay: '0ms' }}
+                  />
+                  <div 
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{ backgroundColor: selectedNode?.color || '#00D9FF', animationDelay: '150ms' }}
+                  />
+                  <div 
+                    className="w-2 h-2 rounded-full animate-bounce"
+                    style={{ backgroundColor: selectedNode?.color || '#00D9FF', animationDelay: '300ms' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 滚动锚点 */}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* 输入区域 */}
+          <div 
+            className="border-t p-4 flex-shrink-0"
+            style={{ 
+              borderColor: `${selectedNode?.color || '#00D9FF'}22`,
+              background: 'rgba(0,0,0,0.8)' 
+            }}
+          >
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="继续提问..."
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  border: `1px solid ${inputMessage.trim() ? (selectedNode?.color || '#00D9FF') + '66' : 'rgba(255,255,255,0.1)'}`,
+                  color: '#fff',
+                }}
+                disabled={aiLoading}
+              />
+              <button
+                onClick={handleFollowUpQuestion}
+                disabled={!inputMessage.trim() || aiLoading}
+                className="px-4 py-2.5 rounded-lg font-medium transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: selectedNode?.color || '#00D9FF',
+                  color: '#000',
+                }}
+                onMouseEnter={(e) => {
+                  if (inputMessage.trim() && !aiLoading) {
+                    e.currentTarget.style.boxShadow = `0 0 20px ${selectedNode?.color || '#00D9FF'}66`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-xs text-gray-600">
+                按 Enter 发送，Shift + Enter 换行
+              </span>
+              <button
+                onClick={() => {
+                  setChatMessages([]);
+                  setInputMessage('');
+                }}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                清空对话
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 悬停提示 - 调整位置 */}
+      {/* 悬停提示 */}
       {hoverNode && !selectedNode && (
         <div className="absolute bottom-16 right-6 bg-black/80 border border-gray-700 rounded-lg px-4 py-2 backdrop-blur-sm">
           <span className="text-sm" style={{ color: hoverNode.color }}>
@@ -746,13 +852,13 @@ export default function TimelinePage() {
         </div>
       )}
 
-      {/* 操作说明 - 固定在底部中央 */}
+      {/* 操作说明 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 border border-gray-700 rounded-lg px-4 py-2 backdrop-blur-sm">
         <div className="flex items-center gap-6 text-xs text-gray-400">
           <span>🖱️ 左键拖拽旋转</span>
           <span>🖱️ 滚轮缩放</span>
           <span>👆 点击节点查看详情</span>
-          <span>✨ 共 {BUILDINGS.length} 座建筑</span>
+          <span>✨ 共 100 座中国经典古建筑</span>
         </div>
       </div>
     </div>
