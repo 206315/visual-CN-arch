@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 Three.js 3D小车驾驶模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 280px;
+        }
+
+        #info h1 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 18px;
+            text-shadow: 0 0 10px #ff6b6b;
+        }
+
+        .info-item {
+            margin: 5px 0;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-label {
+            color: #aaa;
+        }
+
+        .info-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            display: block;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            margin: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.active {
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+
+        #instructions h3 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        #instructions ul {
+            list-style: none;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        #instructions li {
+            margin: 3px 0;
+            color: #ccc;
+        }
+
+        #instructions .key {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        #speedometer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 50%;
+            border: 3px solid #ff6b6b;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #speedometer .speed {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        #speedometer .unit {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 18px;
+        }
+
+        .loading.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 20px;
+            right: 340px;
+            z-index: 100;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="loading" class="loading">
+            <div class="pulse">🚗 初始化3D小车模拟器...</div>
+            <div style="font-size: 12px; margin-top: 10px; color: #aaa;">
+                正在加载场景和车辆模型
+            </div>
+        </div>
+
+        <div id="info">
+            <h1>🚗 小车驾驶模拟器</h1>
+            <div class="info-item">
+                <span class="info-label">引擎状态:</span>
+                <span class="info-value" id="engineStatus">启动</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">视角模式:</span>
+                <span class="info-value" id="cameraMode">第三人称</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">位置:</span>
+                <span class="info-value" id="position">X: 0, Z: 0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">转向角度:</span>
+                <span class="info-value" id="steering">0°</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">轮胎摩擦:</span>
+                <span class="info-value" id="friction">正常</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">FPS:</span>
+                <span class="info-value" id="fps">60</span>
+            </div>
+        </div>
+
+        <div id="controls">
+            <div class="control-group">
+                <label>视角控制</label>
+                <button id="cameraThird" class="active">第三人称</button>
+                <button id="cameraFirst">第一人称</button>
+                <button id="cameraTop">俯视角</button>
+                <button id="cameraFree">自由视角</button>
+            </div>
+
+            <div class="control-group">
+                <label>环境设置</label>
+                <button id="timeDay" class="active">白天</button>
+                <button id="timeNight">夜晚</button>
+                <button id="weatherClear" class="active">晴天</button>
+                <button id="weatherRain">雨天</button>
+            </div>
+
+            <div class="control-group">
+                <label>车辆颜色</label>
+                <button id="colorRed" class="active">红色</button>
+                <button id="colorBlue">蓝色</button>
+                <button id="colorGreen">绿色</button>
+                <button id="colorYellow">黄色</button>
+            </div>
+
+            <div class="control-group">
+                <label>引擎功率: <span id="powerValue">100%</span></label>
+                <input type="range" id="enginePower" min="50" max="150" value="100">
+            </div>
+        </div>
+
+        <div id="instructions">
+            <h3>🎮 驾驶操作</h3>
+            <ul>
+                <li><span class="key">W/↑</span> - 前进加速</li>
+                <li><span class="key">S/↓</span> - 后退刹车</li>
+                <li><span class="key">A/←</span> - 左转</li>
+                <li><span class="key">D/→</span> - 右转</li>
+                <li><span class="key">空格</span> - 手刹</li>
+                <li><span class="key">R</span> - 重置位置</li>
+                <li><span class="key">C</span> - 切换视角</li>
+                <li><span class="key">H</span> - 鸣笛</li>
+                <li><span class="key">L</span> - 车灯开关</li>
+            </ul>
+        </div>
+
+        <div id="speedometer">
+            <div class="speed" id="speedValue">0</div>
+            <div class="unit">km/h</div>
+        </div>
+
+        <canvas id="minimap"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script>
+        // 全局变量
+        let scene, camera, renderer;
+        let car, wheels = [];
+        let currentCameraMode = 'third';
+        let keys = {};
+        let carSpeed = 0;
+        let carRotation = 0;
+        let steeringAngle = 0;
+        let maxSpeed = 80;
+        let acceleration = 0.5;
+        let friction = 0.95;
+        let turnSpeed = 0.03;
+        let enginePower = 1.0;
+        let isHandbrake = false;
+        let headlights = [];
+        let lightsOn = false;
+        let frameCount = 0;
+        let lastTime = 0;
+        let fps = 60;
+
+        // 环境变量
+        let isNight = false;
+        let isRaining = false;
+        let rainParticles = [];
+
+        // 初始化
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0xcccccc, 100, 1000);
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setClearColor(0x87CEEB);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // 设置光照
+            setupLighting();
+
+            // 创建地面
+            createGround();
+
+            // 创建小车
+            createCar();
+
+            // 创建环境
+            createEnvironment();
+
+            // 设置事件监听
+            setupEventListeners();
+
+            // 设置相机位置
+            setCameraMode('third');
+
+            // 隐藏加载界面
+            document.getElementById('loading').classList.add('hidden');
+
+            // 开始渲染循环
+            animate();
+        }
+
+        // 设置光照
+        function setupLighting() {
+            // 环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+            scene.add(ambientLight);
+
+            // 太阳光
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(100, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.camera.left = -100;
+            directionalLight.shadow.camera.right = 100;
+            directionalLight.shadow.camera.top = 100;
+            directionalLight.shadow.camera.bottom = -100;
+            scene.add(directionalLight);
+        }
+
+        // 创建地面
+        function createGround() {
+            // 主地面
+            const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x90EE90,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // 道路
+            createRoads();
+
+            // 停车位标线
+            createParkingSpots();
+        }
+
+        // 创建道路
+        function createRoads() {
+            // 主干道
+            const roadGeometry = new THREE.PlaneGeometry(20, 400);
+            const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            const mainRoad = new THREE.Mesh(roadGeometry, roadMaterial);
+            mainRoad.rotation.x = -Math.PI / 2;
+            mainRoad.position.y = 0.01;
+            scene.add(mainRoad);
+
+            // 交叉路口
+            const intersectionGeometry = new THREE.PlaneGeometry(60, 60);
+            const intersection = new THREE.Mesh(intersectionGeometry, roadMaterial);
+            intersection.rotation.x = -Math.PI / 2;
+            intersection.position.y = 0.01;
+            scene.add(intersection);
+
+            // 侧道
+            const sideRoadGeometry = new THREE.PlaneGeometry(400, 20);
+            const sideRoad = new THREE.Mesh(sideRoadGeometry, roadMaterial);
+            sideRoad.rotation.x = -Math.PI / 2;
+            sideRoad.position.y = 0.01;
+            scene.add(sideRoad);
+
+            // 道路标线
+            createRoadMarkings();
+        }
+
+        // 创建道路标线
+        function createRoadMarkings() {
+            const lineGeometry = new THREE.PlaneGeometry(2, 10);
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            // 中央分隔线
+            for (let i = -200; i < 200; i += 20) {
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(0, 0.02, i);
+                scene.add(line);
+            }
+
+            // 横向标线
+            const crossLineGeometry = new THREE.PlaneGeometry(10, 2);
+            for (let i = -200; i < 200; i += 20) {
+                const line = new THREE.Mesh(crossLineGeometry, lineMaterial);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(i, 0.02, 0);
+                scene.add(line);
+            }
+        }
+
+        // 创建停车位
+        function createParkingSpots() {
+            const spotGeometry = new THREE.PlaneGeometry(8, 15);
+            const spotMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.3
+            });
+
+            for (let i = 0; i < 6; i++) {
+                const spot = new THREE.Mesh(spotGeometry, spotMaterial);
+                spot.rotation.x = -Math.PI / 2;
+                spot.position.set(40 + i * 12, 0.02, 50);
+                scene.add(spot);
+            }
+        }
+
+        // 创建小车
+        function createCar() {
+            car = new THREE.Group();
+
+            // 车身
+            const bodyGeometry = new THREE.BoxGeometry(8, 3, 15);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xff4444,
+                shininess: 100
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 2;
+            body.castShadow = true;
+            car.add(body);
+
+            // 车顶
+            const roofGeometry = new THREE.BoxGeometry(6, 2, 8);
+            const roofMaterial = new THREE.MeshPhongMaterial({ color: 0xff6666 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = 4;
+            roof.position.z = -1;
+            roof.castShadow = true;
+            car.add(roof);
+
+            // 车轮
+            createWheels();
+
+            // 车灯
+            createHeadlights();
+
+            // 车窗
+            createWindows();
+
+            car.position.set(0, 0, 0);
+            car.castShadow = true;
+            scene.add(car);
+        }
+
+        // 创建车轮
+        function createWheels() {
+            const wheelGeometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 16);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x222222 });
+
+            const wheelPositions = [
+                { x: -4, z: 5 },   // 左前轮
+                { x: 4, z: 5 },    // 右前轮
+                { x: -4, z: -5 },  // 左后轮
+                { x: 4, z: -5 }    // 右后轮
+            ];
+
+            wheels = [];
+            wheelPositions.forEach((pos, index) => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(pos.x, 1, pos.z);
+                wheel.castShadow = true;
+                car.add(wheel);
+                wheels.push(wheel);
+
+                // 轮毂
+                const hubGeometry = new THREE.CylinderGeometry(0.8, 0.8, 1.2, 8);
+                const hubMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+                const hub = new THREE.Mesh(hubGeometry, hubMaterial);
+                hub.rotation.z = Math.PI / 2;
+                hub.position.set(pos.x, 1, pos.z);
+                car.add(hub);
+            });
+        }
+
+        // 创建车灯
+        function createHeadlights() {
+            const lightGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+            const lightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffaa,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            // 前大灯
+            const leftHeadlight = new THREE.Mesh(lightGeometry, lightMaterial);
+            leftHeadlight.position.set(-2.5, 2, 7);
+            car.add(leftHeadlight);
+
+            const rightHeadlight = new THREE.Mesh(lightGeometry, lightMaterial);
+            rightHeadlight.position.set(2.5, 2, 7);
+            car.add(rightHeadlight);
+
+            // 简化的聚光灯（只用一个）
+            const mainSpotlight = new THREE.SpotLight(0xffffff, 0, 50, Math.PI / 6, 0.5);
+            mainSpotlight.position.set(0, 2, 7);
+            mainSpotlight.target.position.set(0, 0, 20);
+            mainSpotlight.castShadow = true;
+            car.add(mainSpotlight);
+            car.add(mainSpotlight.target);
+
+            headlights = [mainSpotlight];
+
+            // 尾灯
+            const tailLightMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const leftTaillight = new THREE.Mesh(lightGeometry, tailLightMaterial);
+            leftTaillight.position.set(-2.5, 2, -7);
+            car.add(leftTaillight);
+
+            const rightTaillight = new THREE.Mesh(lightGeometry, tailLightMaterial);
+            rightTaillight.position.set(2.5, 2, -7);
+            car.add(rightTaillight);
+        }
+
+        // 创建车窗
+        function createWindows() {
+            const windowMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x87CEEB,
+                transparent: true,
+                opacity: 0.3
+            });
+
+            // 前挡风玻璃
+            const frontWindowGeometry = new THREE.PlaneGeometry(6, 2);
+            const frontWindow = new THREE.Mesh(frontWindowGeometry, windowMaterial);
+            frontWindow.position.set(0, 4, 3);
+            frontWindow.rotation.x = -Math.PI / 6;
+            car.add(frontWindow);
+
+            // 后挡风玻璃
+            const rearWindow = new THREE.Mesh(frontWindowGeometry, windowMaterial);
+            rearWindow.position.set(0, 4, -5);
+            rearWindow.rotation.x = Math.PI / 6;
+            car.add(rearWindow);
+
+            // 侧窗
+            const sideWindowGeometry = new THREE.PlaneGeometry(8, 2);
+            const leftWindow = new THREE.Mesh(sideWindowGeometry, windowMaterial);
+            leftWindow.position.set(-3, 4, -1);
+            leftWindow.rotation.y = Math.PI / 2;
+            car.add(leftWindow);
+
+            const rightWindow = new THREE.Mesh(sideWindowGeometry, windowMaterial);
+            rightWindow.position.set(3, 4, -1);
+            rightWindow.rotation.y = -Math.PI / 2;
+            car.add(rightWindow);
+        }
+
+        // 创建环境
+        function createEnvironment() {
+            // 建筑物
+            createBuildings();
+
+            // 树木
+            createTrees();
+
+            // 路灯
+            createStreetLights();
+
+            // 交通标志
+            createTrafficSigns();
+        }
+
+        // 创建建筑物
+        function createBuildings() {
+            const buildingColors = [0x8B4513, 0x696969, 0x2F4F4F, 0x800080];
+            
+            for (let i = 0; i < 8; i++) {
+                const width = 20 + Math.random() * 20;
+                const height = 20 + Math.random() * 40;
+                const depth = 20 + Math.random() * 20;
+                
+                const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+                const buildingMaterial = new THREE.MeshLambertMaterial({ 
+                    color: buildingColors[Math.floor(Math.random() * buildingColors.length)]
+                });
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = 150 + Math.random() * 100;
+                building.position.set(
+                    Math.cos(angle) * radius,
+                    height / 2,
+                    Math.sin(angle) * radius
+                );
+                building.castShadow = true;
+                building.receiveShadow = true;
+                scene.add(building);
+            }
+        }
+
+        // 创建树木
+        function createTrees() {
+            for (let i = 0; i < 20; i++) {
+                const tree = new THREE.Group();
+
+                // 树干
+                const trunkGeometry = new THREE.CylinderGeometry(1, 1.5, 8);
+                const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                trunk.position.y = 4;
+                trunk.castShadow = true;
+                tree.add(trunk);
+
+                // 树冠
+                const crownGeometry = new THREE.SphereGeometry(6, 8, 8);
+                const crownMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                const crown = new THREE.Mesh(crownGeometry, crownMaterial);
+                crown.position.y = 12;
+                crown.castShadow = true;
+                tree.add(crown);
+
+                // 随机位置
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 80 + Math.random() * 150;
+                tree.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+                scene.add(tree);
+            }
+        }
+
+        // 创建路灯
+        function createStreetLights() {
+            for (let i = -100; i <= 100; i += 100) {
+                // 左侧路灯
+                const leftLight = createStreetLight();
+                leftLight.position.set(-15, 0, i);
+                scene.add(leftLight);
+
+                // 右侧路灯
+                const rightLight = createStreetLight();
+                rightLight.position.set(15, 0, i);
+                scene.add(rightLight);
+            }
+        }
+
+        // 创建单个路灯
+        function createStreetLight() {
+            const streetLight = new THREE.Group();
+
+            // 灯杆
+            const poleGeometry = new THREE.CylinderGeometry(0.3, 0.3, 12);
+            const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole.position.y = 6;
+            pole.castShadow = true;
+            streetLight.add(pole);
+
+            // 灯罩
+            const lampGeometry = new THREE.SphereGeometry(1.5, 8, 8);
+            const lampMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffaa,
+                transparent: true,
+                opacity: 0.6
+            });
+            const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+            lamp.position.y = 12;
+            streetLight.add(lamp);
+
+            return streetLight;
+        }
+
+        // 创建交通标志
+        function createTrafficSigns() {
+            // 停车标志
+            const stopSignGeometry = new THREE.CylinderGeometry(0.1, 0.1, 3);
+            const stopSignMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+            const stopSignPole = new THREE.Mesh(stopSignGeometry, stopSignMaterial);
+            stopSignPole.position.set(25, 1.5, 25);
+            scene.add(stopSignPole);
+
+            const signGeometry = new THREE.BoxGeometry(3, 3, 0.2);
+            const signMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+            const stopSign = new THREE.Mesh(signGeometry, signMaterial);
+            stopSign.position.set(25, 4, 25);
+            scene.add(stopSign);
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 键盘事件
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+
+            // 按钮事件
+            setupButtonEvents();
+
+            // 滑块事件
+            document.getElementById('enginePower').addEventListener('input', (e) => {
+                enginePower = parseInt(e.target.value) / 100;
+                document.getElementById('powerValue').textContent = e.target.value + '%';
+            });
+
+            // 窗口大小调整
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // 设置按钮事件
+        function setupButtonEvents() {
+            // 视角控制
+            document.getElementById('cameraThird').addEventListener('click', () => setCameraMode('third'));
+            document.getElementById('cameraFirst').addEventListener('click', () => setCameraMode('first'));
+            document.getElementById('cameraTop').addEventListener('click', () => setCameraMode('top'));
+            document.getElementById('cameraFree').addEventListener('click', () => setCameraMode('free'));
+
+            // 时间控制
+            document.getElementById('timeDay').addEventListener('click', () => setTimeOfDay('day'));
+            document.getElementById('timeNight').addEventListener('click', () => setTimeOfDay('night'));
+
+            // 天气控制
+            document.getElementById('weatherClear').addEventListener('click', () => setWeather('clear'));
+            document.getElementById('weatherRain').addEventListener('click', () => setWeather('rain'));
+
+            // 车辆颜色
+            document.getElementById('colorRed').addEventListener('click', () => setCarColor(0xff4444));
+            document.getElementById('colorBlue').addEventListener('click', () => setCarColor(0x4444ff));
+            document.getElementById('colorGreen').addEventListener('click', () => setCarColor(0x44ff44));
+            document.getElementById('colorYellow').addEventListener('click', () => setCarColor(0xffff44));
+        }
+
+        // 键盘按下事件
+        function onKeyDown(event) {
+            keys[event.code] = true;
+
+            switch(event.code) {
+                case 'Space':
+                    event.preventDefault();
+                    isHandbrake = true;
+                    break;
+                case 'KeyR':
+                    resetCarPosition();
+                    break;
+                case 'KeyC':
+                    cycleCameraMode();
+                    break;
+                case 'KeyH':
+                    playHorn();
+                    break;
+                case 'KeyL':
+                    toggleHeadlights();
+                    break;
+            }
+        }
+
+        // 键盘释放事件
+        function onKeyUp(event) {
+            keys[event.code] = false;
+            
+            if (event.code === 'Space') {
+                isHandbrake = false;
+            }
+        }
+
+        // 更新车辆物理
+        function updateCarPhysics() {
+            // 加速和减速
+            if (keys['KeyW'] || keys['ArrowUp']) {
+                carSpeed += acceleration * enginePower;
+            } else if (keys['KeyS'] || keys['ArrowDown']) {
+                carSpeed -= acceleration * enginePower;
+            } else {
+                carSpeed *= friction;
+            }
+
+            // 手刹
+            if (isHandbrake) {
+                carSpeed *= 0.9;
+            }
+
+            // 限制最大速度
+            carSpeed = Math.max(-maxSpeed/2, Math.min(maxSpeed, carSpeed));
+
+            // 转向
+            if (keys['KeyA'] || keys['ArrowLeft']) {
+                steeringAngle = Math.max(-0.5, steeringAngle - 0.02);
+            } else if (keys['KeyD'] || keys['ArrowRight']) {
+                steeringAngle = Math.min(0.5, steeringAngle + 0.02);
+            } else {
+                steeringAngle *= 0.9; // 自动回正
+            }
+
+            // 只有在移动时才能转向
+            if (Math.abs(carSpeed) > 0.1) {
+                carRotation += steeringAngle * (carSpeed / maxSpeed) * turnSpeed;
+            }
+
+            // 更新车辆位置
+            const moveX = Math.sin(carRotation) * carSpeed * 0.1;
+            const moveZ = Math.cos(carRotation) * carSpeed * 0.1;
+            
+            car.position.x += moveX;
+            car.position.z += moveZ;
+            car.rotation.y = carRotation;
+
+            // 更新车轮动画
+            updateWheelAnimation();
+
+            // 更新UI
+            updateUI();
+        }
+
+        // 更新车轮动画
+        function updateWheelAnimation() {
+            const wheelRotation = carSpeed * 0.02;
+            
+            // 所有车轮转动
+            wheels.forEach(wheel => {
+                wheel.rotation.x += wheelRotation;
+            });
+
+            // 前轮转向
+            if (wheels.length >= 2) {
+                wheels[0].rotation.y = steeringAngle; // 左前轮
+                wheels[1].rotation.y = steeringAngle; // 右前轮
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            const speed = Math.abs(carSpeed * 2).toFixed(0);
+            document.getElementById('speedValue').textContent = speed;
+            
+            document.getElementById('position').textContent = 
+                `X: ${car.position.x.toFixed(1)}, Z: ${car.position.z.toFixed(1)}`;
+            
+            document.getElementById('steering').textContent = 
+                `${(steeringAngle * 180 / Math.PI).toFixed(1)}°`;
+
+            // 摩擦力状态
+            const frictionStatus = isHandbrake ? '手刹' : (isRaining ? '湿滑' : '正常');
+            document.getElementById('friction').textContent = frictionStatus;
+        }
+
+        // 设置相机模式
+        function setCameraMode(mode) {
+            currentCameraMode = mode;
+            
+            // 更新按钮状态
+            document.querySelectorAll('#controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const modeNames = {
+                'third': '第三人称',
+                'first': '第一人称',
+                'top': '俯视角',
+                'free': '自由视角'
+            };
+            
+            document.getElementById('camera' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+            document.getElementById('cameraMode').textContent = modeNames[mode];
+        }
+
+        // 更新相机位置
+        function updateCamera() {
+            switch(currentCameraMode) {
+                case 'third':
+                    // 第三人称视角
+                    const thirdPersonDistance = 25;
+                    const thirdPersonHeight = 10;
+                    camera.position.x = car.position.x - Math.sin(carRotation) * thirdPersonDistance;
+                    camera.position.y = car.position.y + thirdPersonHeight;
+                    camera.position.z = car.position.z - Math.cos(carRotation) * thirdPersonDistance;
+                    camera.lookAt(car.position);
+                    break;
+                    
+                case 'first':
+                    // 第一人称视角
+                    camera.position.x = car.position.x;
+                    camera.position.y = car.position.y + 4;
+                    camera.position.z = car.position.z;
+                    camera.rotation.y = carRotation;
+                    break;
+                    
+                case 'top':
+                    // 俯视角
+                    camera.position.x = car.position.x;
+                    camera.position.y = car.position.y + 50;
+                    camera.position.z = car.position.z;
+                    camera.lookAt(car.position);
+                    break;
+                    
+                case 'free':
+                    // 自由视角（不跟随车辆）
+                    break;
+            }
+        }
+
+        // 循环切换相机模式
+        function cycleCameraMode() {
+            const modes = ['third', 'first', 'top', 'free'];
+            const currentIndex = modes.indexOf(currentCameraMode);
+            const nextIndex = (currentIndex + 1) % modes.length;
+            setCameraMode(modes[nextIndex]);
+        }
+
+        // 重置车辆位置
+        function resetCarPosition() {
+            car.position.set(0, 0, 0);
+            car.rotation.y = 0;
+            carSpeed = 0;
+            carRotation = 0;
+            steeringAngle = 0;
+        }
+
+        // 播放喇叭声
+        function playHorn() {
+            // 这里可以添加音频播放逻辑
+            console.log('🎺 嘟嘟！');
+        }
+
+        // 切换车灯
+        function toggleHeadlights() {
+            lightsOn = !lightsOn;
+            headlights.forEach(light => {
+                light.intensity = lightsOn ? 1 : 0;
+            });
+        }
+
+        // 设置时间
+        function setTimeOfDay(time) {
+            isNight = (time === 'night');
+            
+            if (isNight) {
+                renderer.setClearColor(0x000033);
+                scene.fog.color.setHex(0x000033);
+                // 自动开启车灯
+                if (!lightsOn) toggleHeadlights();
+            } else {
+                renderer.setClearColor(0x87CEEB);
+                scene.fog.color.setHex(0xcccccc);
+            }
+
+            // 更新按钮状态
+            document.getElementById('timeDay').classList.toggle('active', !isNight);
+            document.getElementById('timeNight').classList.toggle('active', isNight);
+        }
+
+        // 设置天气
+        function setWeather(weather) {
+            isRaining = (weather === 'rain');
+            
+            if (isRaining) {
+                createRain();
+                friction = 0.98; // 雨天摩擦力降低
+            } else {
+                removeRain();
+                friction = 0.95; // 正常摩擦力
+            }
+
+            // 更新按钮状态
+            document.getElementById('weatherClear').classList.toggle('active', !isRaining);
+            document.getElementById('weatherRain').classList.toggle('active', isRaining);
+        }
+
+        // 创建雨效果
+        function createRain() {
+            const rainGeometry = new THREE.BufferGeometry();
+            const rainMaterial = new THREE.PointsMaterial({
+                color: 0xaaaaaa,
+                size: 0.1,
+                transparent: true
+            });
+
+            const rainVertices = [];
+            for (let i = 0; i < 1000; i++) {
+                rainVertices.push(
+                    Math.random() * 400 - 200, // x
+                    Math.random() * 100,       // y
+                    Math.random() * 400 - 200  // z
+                );
+            }
+
+            rainGeometry.setAttribute('position', new THREE.Float32BufferAttribute(rainVertices, 3));
+            const rain = new THREE.Points(rainGeometry, rainMaterial);
+            scene.add(rain);
+            rainParticles.push(rain);
+        }
+
+        // 移除雨效果
+        function removeRain() {
+            rainParticles.forEach(rain => {
+                scene.remove(rain);
+            });
+            rainParticles = [];
+        }
+
+        // 设置车辆颜色
+        function setCarColor(color) {
+            if (car && car.children[0]) {
+                car.children[0].material.color.setHex(color);
+            }
+
+            // 更新按钮状态
+            const colorButtons = ['colorRed', 'colorBlue', 'colorGreen', 'colorYellow'];
+            const colors = [0xff4444, 0x4444ff, 0x44ff44, 0xffff44];
+            const activeIndex = colors.indexOf(color);
+            
+            colorButtons.forEach((buttonId, index) => {
+                document.getElementById(buttonId).classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 动画循环
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+
+            // 计算FPS
+            frameCount++;
+            if (currentTime - lastTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
+                document.getElementById('fps').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            // 更新车辆物理
+            updateCarPhysics();
+
+            // 更新相机
+            updateCamera();
+
+            // 更新雨效果
+            if (isRaining && rainParticles.length > 0) {
+                rainParticles.forEach(rain => {
+                    const positions = rain.geometry.attributes.position.array;
+                    for (let i = 1; i < positions.length; i += 3) {
+                        positions[i] -= 2; // 雨滴下落
+                        if (positions[i] < 0) {
+                            positions[i] = 100; // 重置到顶部
+                        }
+                    }
+                    rain.geometry.attributes.position.needsUpdate = true;
+                });
+            }
+
+            // 渲染场景
+            renderer.render(scene, camera);
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

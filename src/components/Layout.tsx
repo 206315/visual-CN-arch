@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
+import AncientArchitectureAssistant from './AncientArchitectureAssistant';
 
 /**
  * 全局布局组件
@@ -17,6 +18,8 @@ function Layout() {
           <Outlet />
         </div>
       </main>
+
+      <AncientArchitectureAssistant />
 
       {/* 底部版权区域 */}
       <footer className="border-t border-imperial-gold/20 py-6 text-center">

@@ -120,6 +120,10 @@ const PALACE_LAYERS: LayerDef[] = [
   },
 ];
 
+function getLayerIndexFromPalaceHeight(height: number) {
+  return PALACE_LAYERS.findIndex((layer) => height >= layer.yRange[0] && height <= layer.yRange[1]);
+}
+
 /* ========== 故宫角楼统计数据 ========== */
 const STATS = [
   { label: '斗拱', value: '220', unit: '攒' },
@@ -793,10 +797,16 @@ function PalaceModel({ selectedIdx, onSelect }: {
 }
 
 /* ========== GLB 模型路径（由 scripts/generate_palace_glb.py 生成） ========== */
-const GLB_MODEL_PATH = '/models/palace_corner_tower.glb';
+const GLB_MODEL_PATH = new URL('../../3dc0d3f1-d0b7-4c69-820b-b6971dc10baf.glb', import.meta.url).href;
 
 /* ========== GLB 模型加载组件（TRELLIS 生成的3D模型） ========== */
-function PalaceGLBModel({ onError }: { onError: () => void }) {
+function PalaceGLBModel({
+  selectedIdx,
+  onError,
+}: {
+  selectedIdx: number | null;
+  onError: () => void;
+}) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF(GLB_MODEL_PATH, true, true, (loader) => {
     loader.manager.onError = () => onError();
@@ -812,11 +822,65 @@ function PalaceGLBModel({ onError }: { onError: () => void }) {
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const targetSize = 3.0; // 目标显示尺寸
+    const targetSize = 2.35;
     const scale = targetSize / maxDim;
     scene.scale.setScalar(scale);
-    scene.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    scene.position.set(-center.x * scale, -center.y * scale + 0.65, -center.z * scale);
+    scene.userData.sourceMinY = box.min.y;
+    scene.userData.sourceHeight = size.y;
+    scene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) {
+        return;
+      }
+      const material = child.material;
+      const materials = Array.isArray(material) ? material : [material];
+      child.userData.baseEmissive = materials.map((mat) => (mat instanceof THREE.MeshStandardMaterial ? mat.emissive.clone() : null));
+      child.userData.baseEmissiveIntensity = materials.map((mat) => (mat instanceof THREE.MeshStandardMaterial ? mat.emissiveIntensity : 0));
+    });
   }, [scene, onError]);
+
+  useEffect(() => {
+    if (!scene || scene.userData.sourceHeight === undefined || scene.userData.sourceMinY === undefined) {
+      return;
+    }
+    scene.updateMatrixWorld(true);
+    scene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) {
+        return;
+      }
+      child.geometry.computeBoundingBox();
+      if (!child.geometry.boundingBox) {
+        return;
+      }
+      const center = child.geometry.boundingBox.getCenter(new THREE.Vector3());
+      const localCenter = child.localToWorld(center).clone();
+      const sourceCenter = scene.worldToLocal(localCenter);
+      const ratio = THREE.MathUtils.clamp(
+        (sourceCenter.y - scene.userData.sourceMinY) / scene.userData.sourceHeight,
+        0,
+        1
+      );
+      const layerIdx = getLayerIndexFromPalaceHeight(ratio * PALACE_SPECS.totalHeight);
+      const material = child.material;
+      const materials = Array.isArray(material) ? material : [material];
+      materials.forEach((mat, index) => {
+        if (!(mat instanceof THREE.MeshStandardMaterial)) {
+          return;
+        }
+        const baseEmissive = child.userData.baseEmissive?.[index] as THREE.Color | null;
+        const baseIntensity = child.userData.baseEmissiveIntensity?.[index] as number | undefined;
+        if (selectedIdx !== null && layerIdx === selectedIdx) {
+          mat.emissive.set('#FFD700');
+          mat.emissiveIntensity = 0.35;
+        } else {
+          if (baseEmissive) {
+            mat.emissive.copy(baseEmissive);
+          }
+          mat.emissiveIntensity = baseIntensity ?? 0;
+        }
+      });
+    });
+  }, [scene, selectedIdx]);
 
   /* 缓慢自转展示 */
   useFrame((_, delta) => {
@@ -847,19 +911,19 @@ function PalaceScene({ selectedIdx, onSelect, viewMode }: {
       <directionalLight position={[10, 15, 10]} intensity={1.3} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
       <directionalLight position={[-8, 10, -8]} intensity={0.4} />
       <directionalLight position={[0, 5, 15]} intensity={0.3} />
-      
+
       {showGLB ? (
         <Suspense fallback={
           <Html center>
             <div className="text-imperial-gold text-sm animate-pulse">加载 3D 模型中...</div>
           </Html>
         }>
-          <PalaceGLBModel onError={() => setGlbFailed(true)} />
+          <PalaceGLBModel selectedIdx={selectedIdx} onError={() => setGlbFailed(true)} />
         </Suspense>
       ) : (
         <PalaceModel selectedIdx={selectedIdx} onSelect={onSelect} />
       )}
-      
+
       <ContactShadows position={[0, -0.12, 0]} opacity={0.5} scale={25} blur={2.5} far={10} />
       <OrbitControls
         enablePan
@@ -918,7 +982,6 @@ function PalacePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 3D 视口 */}
           <div className="lg:col-span-2 h-[500px] md:h-[600px] gold-border rounded-lg overflow-hidden bg-imperial-deeper/50 relative">
-            {/* 视图模式切换 */}
             <div className="absolute top-3 left-3 z-10 flex gap-2">
               <button
                 onClick={() => setViewMode('geometry')}
@@ -940,9 +1003,9 @@ function PalacePage() {
                       ? 'bg-black/40 text-gray-400 border border-gray-700 hover:text-gray-200'
                       : 'bg-black/20 text-gray-600 border border-gray-800 cursor-not-allowed'
                 }`}
-                title={glbAvailable ? 'AI生成的3D模型' : '运行 scripts/generate_palace_glb.py 生成模型'}
+                title={glbAvailable ? '3dc0d3f1-d0b7-4c69-820b-b6971dc10baf 建模视图' : '模型资源未就绪'}
               >
-                AI 3D模型 {glbAvailable === false && '(未生成)'}
+                新建模视图 {glbAvailable === false && '(未就绪)'}
               </button>
             </div>
             <Canvas camera={{ position: [6, 5, 8], fov: 45 }} shadows>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+import BuildingSimilarityShowcase from '../components/BuildingSimilarityShowcase';
 
 /** 首页功能卡片数据 */
 const FEATURES = [
@@ -27,6 +28,14 @@ const FEATURES = [
     icon: '🏯',
     path: '/palace',
     accent: 'from-red-900/40 to-imperial-red/10',
+  },
+  {
+    title: '四合院',
+    subtitle: '传统院落空间',
+    desc: '基于 2d27ecb8-fc0f-4df1-8d44-ea4b7d800d06 建模，展示四合院的围合院落、中轴秩序与门庭礼序。',
+    icon: '🏡',
+    path: '/siheyuan',
+    accent: 'from-orange-900/40 to-amber-500/10',
   },
   {
     title: 'AR体验',
@@ -137,6 +146,14 @@ function HomePage() {
             </button>
             <button
               onClick={() => {
+                document.getElementById('algorithm-showcase')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-8 py-3 border border-imperial-gold/40 text-imperial-gold rounded tracking-wider hover:bg-imperial-gold/10 transition-all duration-300"
+            >
+              查看智能荐览
+            </button>
+            <button
+              onClick={() => {
                 document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="px-8 py-3 border border-imperial-gold/40 text-imperial-gold rounded tracking-wider hover:bg-imperial-gold/10 transition-all duration-300"
@@ -203,6 +220,8 @@ function HomePage() {
           </div>
         </div>
       </section>
+
+      <BuildingSimilarityShowcase />
 
       {/* ========== 项目简介区域 ========== */}
       <section className="py-20 px-4 ink-bg">

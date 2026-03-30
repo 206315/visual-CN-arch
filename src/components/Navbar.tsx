@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { path: '/dougong', label: '斗拱解析', icon: '🏗️' },
   { path: '/bridge', label: '桥梁抗震', icon: '🌉' },
   { path: '/palace', label: '皇宫游览', icon: '🏯' },
+  { path: '/siheyuan', label: '四合院', icon: '🏡' },
   { path: '/sunmao', label: '榫卯力学', icon: '🔧' },
   { path: '/timeline', label: '建筑演化', icon: '📜' },
   { path: '/ar', label: 'AR体验', icon: '📱' },

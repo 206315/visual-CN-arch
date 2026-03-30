@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Morphing Geometry Demo - 几何变形演示</title>
+    <!-- 引入 Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 13px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 18px;
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #shapeInfo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 200px;
+        }
+        
+        .shape-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .shape-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .shape-button.active {
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="info">
+        <h2>🔄 几何变形演示</h2>
+        <p>实时3D几何体变形与材质动画</p>
+        <div>
+            <div class="shape-button active" onclick="morphToShape('sphere')">🔮 球体</div>
+            <div class="shape-button" onclick="morphToShape('cube')">📦 立方体</div>
+            <div class="shape-button" onclick="morphToShape('cylinder')">🥫 圆柱体</div>
+            <div class="shape-button" onclick="morphToShape('torus')">🍩 圆环</div>
+            <div class="shape-button" onclick="morphToShape('octahedron')">💎 八面体</div>
+        </div>
+    </div>
+    
+    <div id="controls">
+        <p><strong>🎮 控制说明:</strong></p>
+        <p>🖱️ 拖拽: 旋转视角</p>
+        <p>🔍 滚轮: 缩放</p>
+        <p>⌨️ 空格: 暂停动画</p>
+        <p>⌨️ C: 切换颜色模式</p>
+        <p>⌨️ W: 切换线框模式</p>
+        <p>⌨️ L: 切换光照</p>
+    </div>
+    
+    <div id="shapeInfo">
+        <h4>📊 当前状态</h4>
+        <p>形状: <span id="currentShape">球体</span></p>
+        <p>顶点数: <span id="vertexCount">0</span></p>
+        <p>面数: <span id="faceCount">0</span></p>
+        <p>变形进度: <span id="morphProgress">0%</span></p>
+        <p>动画速度: <span id="animSpeed">1.0x</span></p>
+    </div>
+
+    <script>
+        // 全局变量
+        let scene, camera, renderer;
+        let mesh, currentGeometry, targetGeometry;
+        let mouse = new THREE.Vector2();
+        let isMouseDown = false;
+        let rotationX = 0, rotationY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let time = 0;
+        let isPaused = false;
+        let morphProgress = 0;
+        let isMorphing = false;
+        let currentShape = 'sphere';
+        let colorMode = 0;
+        let wireframeMode = false;
+        let lightingEnabled = true;
+        let animationSpeed = 1.0;
+
+        // 几何体定义
+        const geometries = {
+            sphere: () => new THREE.SphereGeometry(15, 32, 32),
+            cube: () => new THREE.BoxGeometry(20, 20, 20, 8, 8, 8),
+            cylinder: () => new THREE.CylinderGeometry(12, 12, 25, 32, 8),
+            torus: () => new THREE.TorusGeometry(12, 5, 16, 32),
+            octahedron: () => new THREE.OctahedronGeometry(18, 2)
+        };
+
+        // 形状名称映射
+        const shapeNames = {
+            sphere: '球体',
+            cube: '立方体', 
+            cylinder: '圆柱体',
+            torus: '圆环',
+            octahedron: '八面体'
+        };
+
+        // 初始化场景
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 50);
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // 创建初始几何体
+            createMesh();
+
+            // 设置光照
+            setupLighting();
+
+            // 添加事件监听
+            setupEventListeners();
+
+            // 开始动画
+            animate();
+        }
+
+        // 创建网格
+        function createMesh() {
+            currentGeometry = geometries.sphere();
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xff6b6b,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            mesh = new THREE.Mesh(currentGeometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            updateShapeInfo();
+        }
+
+        // 设置光照
+        function setupLighting() {
+            // 环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+
+            // 主光源
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(50, 50, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // 补光
+            const fillLight = new THREE.DirectionalLight(0x4ecdc4, 0.3);
+            fillLight.position.set(-30, -30, 30);
+            scene.add(fillLight);
+
+            // 背光
+            const backLight = new THREE.DirectionalLight(0x45b7d1, 0.2);
+            backLight.position.set(0, 0, -50);
+            scene.add(backLight);
+        }
+
+        // 变形到指定形状
+        function morphToShape(shapeName) {
+            if (isMorphing || shapeName === currentShape) return;
+
+            // 更新按钮状态
+            document.querySelectorAll('.shape-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            targetGeometry = geometries[shapeName]();
+            currentShape = shapeName;
+            isMorphing = true;
+            morphProgress = 0;
+
+            // 确保顶点数量匹配
+            const currentPositions = currentGeometry.attributes.position.array;
+            const targetPositions = targetGeometry.attributes.position.array;
+            
+            if (currentPositions.length !== targetPositions.length) {
+                // 如果顶点数不匹配，直接替换
+                mesh.geometry.dispose();
+                mesh.geometry = targetGeometry;
+                currentGeometry = targetGeometry;
+                isMorphing = false;
+                updateShapeInfo();
+                return;
+            }
+
+            // 存储原始位置用于插值
+            mesh.geometry.userData.originalPositions = new Float32Array(currentPositions);
+            mesh.geometry.userData.targetPositions = new Float32Array(targetPositions);
+        }
+
+        // 更新形状信息
+        function updateShapeInfo() {
+            document.getElementById('currentShape').textContent = shapeNames[currentShape];
+            document.getElementById('vertexCount').textContent = 
+                currentGeometry.attributes.position.count;
+            document.getElementById('faceCount').textContent = 
+                currentGeometry.index ? currentGeometry.index.count / 3 : 
+                currentGeometry.attributes.position.count / 3;
+            document.getElementById('morphProgress').textContent = 
+                Math.round(morphProgress * 100) + '%';
+            document.getElementById('animSpeed').textContent = animationSpeed.toFixed(1) + 'x';
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 鼠标事件
+            renderer.domElement.addEventListener('mousedown', (event) => {
+                isMouseDown = true;
+                mouse.x = event.clientX;
+                mouse.y = event.clientY;
+            });
+
+            renderer.domElement.addEventListener('mousemove', (event) => {
+                if (isMouseDown) {
+                    targetRotationY += (event.clientX - mouse.x) * 0.01;
+                    targetRotationX += (event.clientY - mouse.y) * 0.01;
+                    mouse.x = event.clientX;
+                    mouse.y = event.clientY;
+                }
+            });
+
+            renderer.domElement.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+
+            // 滚轮缩放
+            renderer.domElement.addEventListener('wheel', (event) => {
+                camera.position.z += event.deltaY * 0.1;
+                camera.position.z = Math.max(20, Math.min(100, camera.position.z));
+            });
+
+            // 键盘事件
+            document.addEventListener('keydown', (event) => {
+                switch(event.code) {
+                    case 'Space':
+                        event.preventDefault();
+                        isPaused = !isPaused;
+                        break;
+                    case 'KeyC':
+                        colorMode = (colorMode + 1) % 5;
+                        updateMaterialColor();
+                        break;
+                    case 'KeyW':
+                        wireframeMode = !wireframeMode;
+                        mesh.material.wireframe = wireframeMode;
+                        break;
+                    case 'KeyL':
+                        lightingEnabled = !lightingEnabled;
+                        scene.children.forEach(child => {
+                            if (child.isLight && child.type !== 'AmbientLight') {
+                                child.visible = lightingEnabled;
+                            }
+                        });
+                        break;
+                    case 'ArrowUp':
+                        animationSpeed = Math.min(3.0, animationSpeed + 0.1);
+                        break;
+                    case 'ArrowDown':
+                        animationSpeed = Math.max(0.1, animationSpeed - 0.1);
+                        break;
+                }
+            });
+
+            // 窗口大小调整
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // 更新材质颜色
+        function updateMaterialColor() {
+            const colors = [
+                0xff6b6b, // 红色
+                0x4ecdc4, // 青色
+                0x45b7d1, // 蓝色
+                0x96ceb4, // 绿色
+                0xffeaa7  // 黄色
+            ];
+            mesh.material.color.setHex(colors[colorMode]);
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isPaused) {
+                time += 0.016 * animationSpeed;
+
+                // 平滑旋转
+                rotationX += (targetRotationX - rotationX) * 0.1;
+                rotationY += (targetRotationY - rotationY) * 0.1;
+                mesh.rotation.x = rotationX;
+                mesh.rotation.y = rotationY;
+
+                // 自动旋转
+                mesh.rotation.y += 0.005 * animationSpeed;
+
+                // 处理变形动画
+                if (isMorphing) {
+                    morphProgress += 0.02 * animationSpeed;
+                    if (morphProgress >= 1) {
+                        morphProgress = 1;
+                        isMorphing = false;
+                        currentGeometry = targetGeometry;
+                    }
+
+                    // 插值顶点位置
+                    const positions = mesh.geometry.attributes.position.array;
+                    const original = mesh.geometry.userData.originalPositions;
+                    const target = mesh.geometry.userData.targetPositions;
+
+                    for (let i = 0; i < positions.length; i++) {
+                        positions[i] = original[i] + (target[i] - original[i]) * 
+                                      easeInOutCubic(morphProgress);
+                    }
+
+                    mesh.geometry.attributes.position.needsUpdate = true;
+                    mesh.geometry.computeVertexNormals();
+                }
+
+                // 动态材质效果
+                const hue = (time * 0.1) % 1;
+                const saturation = 0.7 + Math.sin(time * 0.5) * 0.3;
+                const lightness = 0.5 + Math.sin(time * 0.3) * 0.2;
+                
+                if (colorMode === 0) {
+                    mesh.material.color.setHSL(hue, saturation, lightness);
+                }
+
+                // 脉冲效果
+                const scale = 1 + Math.sin(time * 2) * 0.05;
+                mesh.scale.setScalar(scale);
+
+                updateShapeInfo();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // 缓动函数
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // 全局函数供HTML调用
+        window.morphToShape = morphToShape;
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

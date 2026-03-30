@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
+import PageErrorBoundary from '../components/PageErrorBoundary';
 
 // 建筑技术特征
 interface TechFeatures {
@@ -615,7 +616,7 @@ async function callDeepSeekAPI(
   }
 }
 
-export default function TimelinePage() {
+function TimelinePageContent() {
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [hoverNode, setHoverNode] = useState<any>(null);
   const [showAIDialog, setShowAIDialog] = useState(false);
@@ -1284,5 +1285,16 @@ export default function TimelinePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TimelinePage() {
+  return (
+    <PageErrorBoundary
+      title="建筑演化页面加载异常"
+      description="当前建筑史星图页面在运行时发生异常。为了保证项目可继续演示，系统已切换到安全回退界面。您可以刷新重试，或先返回首页继续查看其他模块。"
+    >
+      <TimelinePageContent />
+    </PageErrorBoundary>
   );
 }
