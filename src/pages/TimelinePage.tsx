@@ -887,10 +887,10 @@ function TimelinePageContent() {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black text-white overflow-hidden">
+    <div className="fixed top-16 left-0 right-0 bottom-0 bg-black text-white overflow-hidden">
       {/* 标题 */}
-      <div className="absolute top-4 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-        <h1 className="text-2xl md:text-3xl font-bold text-center tracking-wider pointer-events-auto"
+      <div className="absolute top-2 left-0 right-0 z-20 p-2 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+        <h1 className="text-xl md:text-2xl font-bold text-center tracking-wider pointer-events-auto"
             style={{ color: '#00D9FF', textShadow: '0 0 20px #00D9FF' }}>
           中国建筑史星图
         </h1>
@@ -902,7 +902,7 @@ function TimelinePageContent() {
       {/* 建筑目录按钮 */}
       <button
         onClick={() => setShowDirectory(!showDirectory)}
-        className="absolute top-4 left-4 z-30 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105"
+        className="absolute top-2 left-4 z-30 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105"
         style={{
           background: 'rgba(0, 217, 255, 0.15)',
           border: '1px solid rgba(0, 217, 255, 0.4)',
@@ -923,7 +923,7 @@ function TimelinePageContent() {
       {/* 自动旋转开关 */}
       <button
         onClick={() => setIsAutoRotating(!isAutoRotating)}
-        className="absolute top-4 right-4 z-30 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105"
+        className="absolute top-2 right-4 z-30 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105"
         style={{
           background: isAutoRotating ? 'rgba(0, 217, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
           border: `1px solid ${isAutoRotating ? 'rgba(0, 217, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)'}`,
@@ -935,9 +935,9 @@ function TimelinePageContent() {
 
       {/* 建筑目录侧边栏 */}
       {showDirectory && (
-        <div 
-          className="absolute top-16 left-4 z-25 w-72 max-h-[calc(100vh-120px)] bg-black/90 border rounded-lg backdrop-blur-sm overflow-hidden flex flex-col"
-          style={{ 
+        <div
+          className="absolute top-12 left-4 z-25 w-72 max-h-[calc(100vh-180px)] bg-black/90 border rounded-lg backdrop-blur-sm overflow-hidden flex flex-col"
+          style={{
             borderColor: 'rgba(0, 217, 255, 0.3)',
             boxShadow: '0 0 30px rgba(0, 217, 255, 0.15)',
           }}
@@ -1048,7 +1048,7 @@ function TimelinePageContent() {
 
       {/* 选中节点信息面板 */}
       {selectedNode && (
-        <div className="absolute top-20 right-4 w-72 bg-black/90 border border-gray-700 rounded-lg p-4 backdrop-blur-sm animate-fade-in z-20">
+        <div className="absolute top-14 right-4 w-72 bg-black/90 border border-gray-700 rounded-lg p-4 backdrop-blur-sm animate-fade-in z-20">
           <button
             onClick={() => setSelectedNode(null)}
             className="absolute top-2 right-2 text-gray-500 hover:text-white"
@@ -1130,12 +1130,12 @@ function TimelinePageContent() {
 
       {/* AI对话框 */}
       {showAIDialog && (
-        <div 
-          className="absolute top-20 left-4 w-[480px] max-w-[calc(100vw-80px)] bg-black/95 border rounded-lg backdrop-blur-sm overflow-hidden flex flex-col z-20"
-          style={{ 
+        <div
+          className="absolute top-14 left-4 w-[480px] max-w-[calc(100vw-80px)] bg-black/95 border rounded-lg backdrop-blur-sm overflow-hidden flex flex-col z-20"
+          style={{
             borderColor: selectedNode?.color || '#00D9FF',
             boxShadow: `0 0 30px ${selectedNode?.color || '#00D9FF'}33`,
-            maxHeight: 'calc(100vh - 120px)',
+            maxHeight: 'calc(100vh - 180px)',
           }}
         >
           {/* AI对话框标题栏 */}
