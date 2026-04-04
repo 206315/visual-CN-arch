@@ -19,7 +19,7 @@ function createWindow() {
   // 确定加载URL：开发时加载Vite服务器，生产时加载打包后的文件
   if (process.env.NODE_ENV === 'development') {
     // 开发模式：加载Vite开发服务器
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL('http://localhost:3001');
     mainWindow.webContents.openDevTools();
   } else {
     // 生产模式：加载打包后的文件

@@ -6,6 +6,7 @@ import BridgePage from './pages/BridgePage';
 import PalacePage from './pages/PalacePage';
 import SiheyuanPage from './pages/SiheyuanPage';
 import ARPage from './pages/ARPage';
+import ARMobilePage from './pages/ARMobilePage';
 import TimelinePage from './pages/TimelinePage';
 import SunmaoPage from './pages/SunmaoPage';
 
@@ -27,6 +28,8 @@ function App() {
         <Route path="/timeline" element={<TimelinePage />} />
         <Route path="/ar" element={<ARPage />} />
       </Route>
+      {/* 移动端AR页面（无导航栏） */}
+      <Route path="/ar-mobile/:modelId" element={<ARMobilePage />} />
     </Routes>
   );
 }
