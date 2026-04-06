@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Particle Wave Demo - 交互式粒子波浪</title>
+    <!-- 引入 Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #1e3c72 0%, #2a5298 50%, #000000 100%);
+            font-family: 'Arial', sans-serif;
+            cursor: none;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-size: 12px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff88;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        #cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+            transition: transform 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="cursor"></div>
+    
+    <div id="info">
+        <h3>🌊 粒子波浪演示</h3>
+        <p>实时交互式3D粒子系统</p>
+        <p>鼠标控制波浪形态</p>
+        <p id="particleCount">粒子数量: 10,000</p>
+    </div>
+    
+    <div id="controls">
+        <p>🖱️ 鼠标移动: 控制波浪</p>
+        <p>🔍 滚轮: 调整视角</p>
+        <p>⌨️ 1-5: 切换效果模式</p>
+        <p>⌨️ 空格: 暂停/继续</p>
+        <p>⌨️ R: 重置波浪</p>
+    </div>
+    
+    <div id="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>模式: <span id="mode">波浪模式</span></div>
+        <div>鼠标: <span id="mousePos">0, 0</span></div>
+        <div>时间: <span id="timeDisplay">0.0s</span></div>
+    </div>
+
+    <script>
+        // 全局变量
+        let scene, camera, renderer;
+        let particles, particleGeometry, particleMaterial;
+        let mouse = new THREE.Vector2();
+        let time = 0;
+        let isPaused = false;
+        let currentMode = 1;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        // 粒子系统参数
+        const PARTICLE_COUNT = 10000;
+        const GRID_SIZE = 100;
+        const WAVE_HEIGHT = 20;
+        
+        // 模式名称
+        const modes = {
+            1: "波浪模式",
+            2: "螺旋模式", 
+            3: "爆炸模式",
+            4: "漩涡模式",
+            5: "脉冲模式"
+        };
+
+        // 初始化场景
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000033, 100, 300);
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 50, 100);
+            camera.lookAt(0, 0, 0);
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // 创建粒子系统
+            createParticleSystem();
+
+            // 创建环境光照
+            setupLighting();
+
+            // 添加事件监听
+            setupEventListeners();
+
+            // 开始动画
+            animate();
+        }
+
+        // 创建粒子系统
+        function createParticleSystem() {
+            particleGeometry = new THREE.BufferGeometry();
+            
+            // 创建粒子位置数组
+            const positions = new Float32Array(PARTICLE_COUNT * 3);
+            const colors = new Float32Array(PARTICLE_COUNT * 3);
+            const sizes = new Float32Array(PARTICLE_COUNT);
+            
+            // 初始化粒子
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const i3 = i * 3;
+                
+                // 网格分布
+                const gridX = (i % GRID_SIZE) - GRID_SIZE / 2;
+                const gridZ = Math.floor(i / GRID_SIZE) - GRID_SIZE / 2;
+                
+                positions[i3] = gridX * 2;
+                positions[i3 + 1] = 0;
+                positions[i3 + 2] = gridZ * 2;
+                
+                // 随机颜色
+                const hue = (i / PARTICLE_COUNT) * 360;
+                const color = new THREE.Color().setHSL(hue / 360, 0.8, 0.6);
+                colors[i3] = color.r;
+                colors[i3 + 1] = color.g;
+                colors[i3 + 2] = color.b;
+                
+                // 随机大小
+                sizes[i] = Math.random() * 3 + 1;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            // 创建粒子材质
+            particleMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    mouse: { value: new THREE.Vector2() },
+                    mode: { value: currentMode }
+                },
+                vertexShader: `
+                    attribute float size;
+                    attribute vec3 color;
+                    varying vec3 vColor;
+                    varying float vAlpha;
+                    uniform float time;
+                    uniform vec2 mouse;
+                    uniform float mode;
+                    
+                    void main() {
+                        vColor = color;
+                        
+                        vec3 pos = position;
+                        float distance = length(pos.xz);
+                        
+                        // 不同模式的效果
+                        if (mode == 1.0) {
+                            // 波浪模式
+                            float wave = sin(distance * 0.1 - time * 2.0) * 10.0;
+                            float mouseWave = sin(length(pos.xz - mouse * 50.0) * 0.2 - time * 3.0) * 15.0;
+                            pos.y = wave + mouseWave;
+                        } else if (mode == 2.0) {
+                            // 螺旋模式
+                            float angle = atan(pos.z, pos.x) + time * 0.5;
+                            pos.y = sin(angle * 3.0 + distance * 0.1) * 15.0;
+                        } else if (mode == 3.0) {
+                            // 爆炸模式
+                            float explosion = sin(time * 2.0) * 0.5 + 0.5;
+                            pos *= (1.0 + explosion * 2.0);
+                            pos.y = sin(distance * 0.1 + time * 3.0) * 20.0 * explosion;
+                        } else if (mode == 4.0) {
+                            // 漩涡模式
+                            float angle = atan(pos.z, pos.x) + distance * 0.02 - time;
+                            float radius = length(pos.xz);
+                            pos.x = cos(angle) * radius;
+                            pos.z = sin(angle) * radius;
+                            pos.y = sin(distance * 0.1 - time * 2.0) * 10.0;
+                        } else if (mode == 5.0) {
+                            // 脉冲模式
+                            float pulse = sin(time * 4.0) * 0.5 + 0.5;
+                            pos.y = sin(distance * 0.1 - time * 2.0) * 15.0 * pulse;
+                        }
+                        
+                        vAlpha = 1.0 - distance / 100.0;
+                        
+                        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                        gl_PointSize = size * (300.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vColor;
+                    varying float vAlpha;
+                    
+                    void main() {
+                        float distance = length(gl_PointCoord - vec2(0.5));
+                        if (distance > 0.5) discard;
+                        
+                        float alpha = (1.0 - distance * 2.0) * vAlpha;
+                        gl_FragColor = vec4(vColor, alpha);
+                    }
+                `,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+        }
+
+        // 设置光照
+        function setupLighting() {
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(50, 50, 50);
+            scene.add(directionalLight);
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 鼠标移动
+            document.addEventListener('mousemove', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // 更新自定义光标位置
+                const cursor = document.getElementById('cursor');
+                cursor.style.left = event.clientX - 10 + 'px';
+                cursor.style.top = event.clientY - 10 + 'px';
+                
+                // 更新鼠标位置显示
+                document.getElementById('mousePos').textContent = 
+                    `${Math.round(mouse.x * 100)}, ${Math.round(mouse.y * 100)}`;
+            });
+
+            // 滚轮缩放
+            document.addEventListener('wheel', (event) => {
+                camera.position.z += event.deltaY * 0.1;
+                camera.position.z = Math.max(50, Math.min(200, camera.position.z));
+            });
+
+            // 键盘事件
+            document.addEventListener('keydown', (event) => {
+                switch(event.code) {
+                    case 'Space':
+                        event.preventDefault();
+                        isPaused = !isPaused;
+                        break;
+                    case 'KeyR':
+                        time = 0;
+                        break;
+                    case 'Digit1':
+                    case 'Digit2':
+                    case 'Digit3':
+                    case 'Digit4':
+                    case 'Digit5':
+                        currentMode = parseInt(event.code.slice(-1));
+                        particleMaterial.uniforms.mode.value = currentMode;
+                        document.getElementById('mode').textContent = modes[currentMode];
+                        break;
+                }
+            });
+
+            // 窗口大小调整
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fps').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            document.getElementById('timeDisplay').textContent = time.toFixed(1) + 's';
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isPaused) {
+                time += 0.016; // 约60fps
+                
+                // 更新shader uniforms
+                particleMaterial.uniforms.time.value = time;
+                particleMaterial.uniforms.mouse.value = mouse;
+                
+                // 相机轻微摆动
+                camera.position.x = Math.sin(time * 0.2) * 10;
+                camera.position.y = 50 + Math.sin(time * 0.3) * 5;
+                camera.lookAt(0, 0, 0);
+                
+                // 旋转粒子系统
+                particles.rotation.y += 0.002;
+            }
+
+            updateStats();
+            renderer.render(scene, camera);
+        }
+
+        // 启动应用
+        init();
+        
+        // 初始化模式显示
+        document.getElementById('mode').textContent = modes[currentMode];
+    </script>
+</body>
+</html>

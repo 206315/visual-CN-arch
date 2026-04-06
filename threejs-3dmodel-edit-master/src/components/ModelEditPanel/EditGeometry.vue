@@ -1,0 +1,165 @@
+<template>
+  <div class="h-[calc(100vh-90px)]">
+    <template v-if="disabled">
+      <div
+        class="box-border flex items-center justify-between w-full h-[35px] px-[20px] text-[#cccccc] bg-[#33343f] border-t border-b border-[#1b1c23]"
+      >
+        <span>几何体模型材质列表</span>
+      </div>
+      <!-- 材质列表 -->
+      <div class="box-border max-w-[380px] bg-[#1b1c23]">
+        <el-scrollbar max-height="300px">
+          <div
+            class="box-border flex items-center justify-between h-[33px] px-[18px] text-[14px] text-[#cccccc] cursor-pointer"
+            :class="state.selectMeshUuid == mesh.uuid ? 'bg-[#27282f]' : ''"
+            @click="onChangeMaterialType(mesh)"
+            v-for="mesh in state.modelMaterialList"
+            :key="mesh.uuid"
+          >
+            <div class="flex items-center w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap">
+              {{ mesh.name }}
+            </div>
+            <el-space>
+              <div v-show="state.selectMeshUuid == mesh.uuid">
+                <el-icon size="20px" color="#2a3ff6">
+                  <Check />
+                </el-icon>
+              </div>
+              <el-icon size="18px" color="#2a3ff6">
+                <Delete @click.stop="onDeleteGeometry(mesh.uuid)" />
+              </el-icon>
+            </el-space>
+          </div>
+        </el-scrollbar>
+      </div>
+      <div
+        class="box-border flex items-center justify-between w-full h-[35px] px-[20px] text-[#cccccc] bg-[#33343f] border-t border-b border-[#1b1c23]"
+      >
+        <span>几何体模型编辑</span>
+      </div>
+      <div class="box-border max-w-[380px] bg-[#1b1c23]">
+        <div
+          class="box-border flex items-center h-[33px] px-[18px] text-[14px] text-[#cccccc] cursor-pointer"
+          v-for="key in geometryConfigList"
+          :key="key"
+        >
+          <el-button type="primary" link>{{ key }} </el-button>
+
+          <el-slider
+            show-input
+            v-if="typeof activeGeometry[key] == 'number'"
+            v-model="activeGeometry[key]"
+            :min="inputRange(key).min"
+            :max="inputRange(key).max"
+            :step="inputRange(key).step"
+            @input="onSetGeometry"
+          />
+          <div v-else-if="typeof activeGeometry[key] == 'string'">
+            {{ activeGeometry[key] }}
+          </div>
+          <el-switch @change="onSetGeometry" v-else-if="typeof activeGeometry[key] == 'boolean'" v-model="activeGeometry[key]" />
+        </div>
+      </div>
+    </template>
+    <el-empty v-else description="当前模型不支持使用该功能" :image-size="120" />
+  </div>
+</template>
+<script setup>
+import { ref, reactive, computed, watch } from "vue";
+import { useMeshEditStore } from "@/store/meshEditStore";
+import { ElMessage } from "element-plus";
+
+const store = useMeshEditStore();
+const config = reactive({
+  materialName: null,
+  type: null
+});
+
+const activeGeometry = ref(null);
+const geometryConfigList = ref([]);
+
+const disabled = computed(() => {
+  const geometryLen = state.modelMaterialList.filter(v => v.userData.geometry);
+  return geometryLen == 0 ? false : true;
+});
+
+const state = reactive({
+  modelMaterialList: computed(() => store.modelApi.modelMaterialList),
+  selectMeshUuid: computed(() => store.selectMeshUuid)
+});
+watch(
+  () => store.selectMeshUuid,
+  val => {
+    const { geometry } = state.modelMaterialList.find(v => v.uuid == val) || {};
+    if (geometry) {
+      const { type } = geometry;
+      activeGeometry.value = {
+        ...geometry.parameters
+      };
+      config.type = type;
+      geometryConfigList.value = Object.keys(activeGeometry.value);
+    } else {
+      geometryConfigList.value = [];
+    }
+  }
+);
+
+// 选择材质
+const onChangeMaterialType = ({ name, material, geometry }) => {
+  config.materialName = material.name;
+  store.modelApi.materialModules.onChangeModelMaterial(name);
+};
+
+//修改材质信息
+const onSetGeometry = () => {
+  store.modelApi.onSetGeometryMesh(activeGeometry.value, config.type);
+};
+
+// 删除材质
+const onDeleteGeometry = uuid => {
+  store.modelApi.onDeleteGeometryMesh(uuid);
+  store.selectMeshAction({});
+  ElMessage.success("删除成功");
+};
+
+const inputRange = key => {
+  let range = {
+    min: 1,
+    max: 80,
+    step: 0.01
+  };
+  if (
+    [
+      "width",
+      "height",
+      "radius",
+      "length",
+      "thetaLength",
+      "radiusTop",
+      "innerRadius",
+      "radiusBottom",
+      "q",
+      "outerRadius",
+      "arc",
+      "tube",
+      "p"
+    ].includes(key)
+  ) {
+    range = {
+      min: 0.1,
+      max: 10,
+      step: 0.01
+    };
+  }
+  if (
+    ["detail", "capSegments", "radialSegments", "thetaStart", "depthSegments", "widthSegments", "heightSegments"].includes(key)
+  ) {
+    range = {
+      min: 0,
+      max: 10,
+      step: 1
+    };
+  }
+  return range;
+};
+</script>
