@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import arExperienceImage from '../../匠新永驻体验版（4月17日前有效）.png';
 
 /* ========== AR 展品数据定义 ========== */
 interface ARItem {
@@ -123,11 +124,11 @@ function ARPage() {
               <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">📱 AR 使用指南</h3>
               <div className="space-y-3">
                 {[
-                  { step: '01', text: '在手机浏览器中打开本页面（需HTTPS）' },
-                  { step: '02', text: '选择想要查看的古建筑展品' },
-                  { step: '03', text: '点击3D预览区右下角的AR图标' },
-                  { step: '04', text: '将手机对准平坦表面，即可放置模型' },
-                  { step: '05', text: '双指缩放/单指旋转，360°观赏建筑细节' },
+                  { step: '01', text: '使用微信扫描页面提供的二维码，进入“匠新永驻”微信小程序' },
+                  { step: '02', text: '在小程序中选择想要查看的古建筑展品' },
+                  { step: '03', text: '进入对应展品页面后，点击“开始AR展示”' },
+                  { step: '04', text: '将手机镜头对准平坦表面，即可在真实空间中放置模型' },
+                  { step: '05', text: '双指缩放、单指旋转，360°观察古建筑细节与空间效果' },
                 ].map((item) => (
                   <div key={item.step} className="flex items-start gap-3">
                     <span className="text-imperial-gold font-bold text-xs bg-imperial-gold/10 rounded px-1.5 py-0.5 shrink-0">
@@ -137,6 +138,21 @@ function ARPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* 体验版入口 */}
+            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">🖼️ 体验版入口</h3>
+              <div className="rounded-lg overflow-hidden border border-imperial-gold/15 bg-black/20">
+                <img
+                  src={arExperienceImage}
+                  alt="匠新永驻体验版（4月17日前有效）"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+              <p className="text-gray-400 text-xs leading-relaxed mt-3">
+                该图片作为移动端 AR 体验版入口与时效说明展示，适合放置在右侧说明区，便于用户在查看操作指南后直接获取体验信息，同时不影响左侧主模型预览。
+              </p>
             </div>
 
             {/* 技术说明 */}

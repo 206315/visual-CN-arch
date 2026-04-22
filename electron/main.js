@@ -30,8 +30,8 @@ function createWindow() {
       slashes: true
     }));
     
-    // 打开开发者工具以便调试（生产环境也暂时打开，方便排查问题）
-    mainWindow.webContents.openDevTools();
+    // 生产模式不打开DevTools，避免挤压视口导致3D渲染偏移
+    // mainWindow.webContents.openDevTools();
   }
 
   // 监听加载错误

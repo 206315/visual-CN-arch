@@ -784,9 +784,11 @@ function TimelinePageContent() {
   const [showDirectory, setShowDirectory] = useState(false);
   const [directoryFilter, setDirectoryFilter] = useState('全部');
   const fgRef = useRef<any>(null);
+  const graphContainerRef = useRef<HTMLDivElement>(null);
   const nodeMeshesRef = useRef<Map<number, THREE.Group>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoRotateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [graphViewport, setGraphViewport] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   const DISPLAY_BUILDING_COUNT = 500;
   const GRAPH_TOP_OFFSET = 88;
@@ -836,28 +838,76 @@ function TimelinePageContent() {
     }
   }, [isAutoRotating]);
 
+  useEffect(() => {
+    const updateViewport = () => {
+      const container = graphContainerRef.current;
+      if (!container) {
+        return;
+      }
+
+      const nextWidth = Math.floor(container.clientWidth);
+      const nextHeight = Math.floor(container.clientHeight);
+
+      setGraphViewport((prev) => {
+        if (prev.width === nextWidth && prev.height === nextHeight) {
+          return prev;
+        }
+        return { width: nextWidth, height: nextHeight };
+      });
+    };
+
+    updateViewport();
+
+    const container = graphContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateViewport();
+    });
+
+    resizeObserver.observe(container);
+    window.addEventListener('resize', updateViewport);
+
+    const timer = window.setTimeout(updateViewport, 200);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', updateViewport);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // 设置控制器限制并将相机居中对准星团
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (fgRef.current) {
-        const controls = fgRef.current.controls();
-        if (controls) {
-          controls.minDistance = 120;
-          controls.maxDistance = 500;
-          controls.autoRotate = isAutoRotating;
-          controls.autoRotateSpeed = 0.5;
-          controls.update();
-        }
-        // 初始相机居中，并将观察目标下移，避免星团遮挡顶部标题文字
-        fgRef.current.cameraPosition(
-          DEFAULT_CAMERA_POSITION,
-          DEFAULT_CAMERA_TARGET,
-          0
-        );
+    if (!fgRef.current || graphViewport.width <= 0 || graphViewport.height <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (!fgRef.current) {
+        return;
       }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+
+      const controls = fgRef.current.controls();
+      if (controls) {
+        controls.minDistance = 120;
+        controls.maxDistance = 500;
+        controls.autoRotate = isAutoRotating;
+        controls.autoRotateSpeed = 0.5;
+        controls.update();
+      }
+
+      fgRef.current.cameraPosition(
+        DEFAULT_CAMERA_POSITION,
+        DEFAULT_CAMERA_TARGET,
+        0
+      );
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [graphViewport, isAutoRotating]);
 
   // 聚焦到指定节点，效果与直接点击星点一致
   const focusNode = useCallback((node: any) => {
@@ -1215,31 +1265,33 @@ function TimelinePageContent() {
 
       {/* 3D 星图 */}
       <div
-        className="w-full"
-        style={{
-          height: `calc(100% - ${GRAPH_TOP_OFFSET}px)`,
-          marginTop: `${GRAPH_TOP_OFFSET}px`,
-        }}
+        ref={graphContainerRef}
+        className="absolute left-0 right-0 bottom-0"
+        style={{ top: `${GRAPH_TOP_OFFSET}px` }}
       >
-        <ForceGraph3D
-          ref={fgRef}
-          graphData={graphData}
-          nodeThreeObject={nodeThreeObject}
-          linkColor={() => '#444444'}
-          linkOpacity={0}
-          linkWidth={0}
-          backgroundColor="#000000"
-          onNodeClick={handleNodeClick}
-          onNodeHover={handleNodeHover}
-          onBackgroundClick={handleBackgroundClick}
-          nodeLabel={(node: any) => `${node.name} (影响因子: ${node.impactFactor})`}
-          warmupTicks={0}
-          cooldownTicks={0}
-          enableNodeDrag={false}
-          enableNavigationControls={true}
-          controlType="orbit"
-          showNavInfo={false}
-        />
+        {graphViewport.width > 0 && graphViewport.height > 0 && (
+          <ForceGraph3D
+            ref={fgRef}
+            width={graphViewport.width}
+            height={graphViewport.height}
+            graphData={graphData}
+            nodeThreeObject={nodeThreeObject}
+            linkColor={() => '#444444'}
+            linkOpacity={0}
+            linkWidth={0}
+            backgroundColor="#000000"
+            onNodeClick={handleNodeClick}
+            onNodeHover={handleNodeHover}
+            onBackgroundClick={handleBackgroundClick}
+            nodeLabel={(node: any) => `${node.name} (影响因子: ${node.impactFactor})`}
+            warmupTicks={0}
+            cooldownTicks={0}
+            enableNodeDrag={false}
+            enableNavigationControls={true}
+            controlType="orbit"
+            showNavInfo={false}
+          />
+        )}
       </div>
 
       {/* 影响因子图例 */}
