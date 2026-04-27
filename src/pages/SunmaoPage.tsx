@@ -25,10 +25,69 @@ const SUNMAO_INFO = {
 
 /* 模拟模式 */
 type SimulationMode = 'static' | 'vertical' | 'horizontal' | 'rotation';
+type JointType = 'straight' | 'dovetail' | 'shoulder' | 'through';
+
+const JOINT_TYPES: Record<JointType, {
+  name: string;
+  short: string;
+  desc: string;
+  compression: string;
+  tension: string;
+  shear: string;
+  color: string;
+}> = {
+  straight: {
+    name: '直榫',
+    short: '基础插接',
+    desc: '直榫依靠榫头与卯口贴合承压，构造清晰，适合展示榫卯最基本的插接关系。',
+    compression: '榫肩与卯口下壁共同承压',
+    tension: '抗拔能力较弱，主要依赖摩擦与木楔',
+    shear: '剪力由榫头侧壁传递',
+    color: '#C5A55A',
+  },
+  dovetail: {
+    name: '燕尾榫',
+    short: '抗拔锁固',
+    desc: '榫头外宽内窄，形似燕尾，拉拔时会被卯口几何形状锁住。',
+    compression: '宽榫肩分散竖向压力',
+    tension: '燕尾斜面提供几何抗拔',
+    shear: '斜面把剪力转化为挤压力',
+    color: '#D69A3A',
+  },
+  shoulder: {
+    name: '抱肩榫',
+    short: '肩部限位',
+    desc: '榫肩包裹卯口边缘，既传压又限制转动，是梁柱节点常见的稳定做法。',
+    compression: '抱肩面扩大承压面积',
+    tension: '肩部约束减小拔出趋势',
+    shear: '榫头与肩面共同抗剪',
+    color: '#B8874F',
+  },
+  through: {
+    name: '穿带榫',
+    short: '贯穿拉结',
+    desc: '榫头贯穿构件并形成拉结关系，适合表现长向构件的连续约束。',
+    compression: '贯穿榫保持两侧同步承压',
+    tension: '贯通构件提高拉结能力',
+    shear: '长榫身分担剪切变形',
+    color: '#D0A060',
+  },
+};
 
 /* ========== 榫卯3D模型组件 ========== */
-function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
+function SunmaoModel({
+  mode,
+  time,
+  jointType,
+  assemblyProgress,
+}: {
+  mode: SimulationMode;
+  time: number;
+  jointType: JointType;
+  assemblyProgress: number;
+}) {
   const groupRef = useRef<THREE.Group>(null);
+  const joint = JOINT_TYPES[jointType];
   
   /* 根据模式计算变形 */
   const deformation = useMemo(() => {
@@ -44,6 +103,11 @@ function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
     }
   }, [mode, time]);
   
+  const insertionOffset = (1 - assemblyProgress / 100) * 1.25;
+  const tenonWidth = jointType === 'dovetail' ? 0.95 : jointType === 'through' ? 0.65 : 0.75;
+  const tenonDepth = jointType === 'through' ? 1.25 : 0.5;
+  const shoulderWidth = jointType === 'shoulder' ? 2.25 : 2.0;
+  
   return (
     <group ref={groupRef}>
       {/* 卯口（母构件，固定） */}
@@ -56,7 +120,7 @@ function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
         
         {/* 卯口凹槽（上部） */}
         <mesh position={[0, 0.3, 0.5]}>
-          <boxGeometry args={[0.8, 0.6, 0.6]} />
+          <boxGeometry args={[jointType === 'dovetail' ? 1.05 : 0.8, 0.6, jointType === 'through' ? 1.25 : 0.6]} />
           <meshStandardMaterial color="#8B4513" roughness={0.8} />
         </mesh>
         
@@ -70,14 +134,14 @@ function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
       
       {/* 榫头（子构件，可变形） */}
       <group 
-        position={[0, 1.2 + deformation.y, 0]}
+        position={[insertionOffset, 1.2 + deformation.y, 0]}
         rotation={[0, 0, deformation.rotation]}
       >
         {/* 榫头主体 */}
         <mesh position={[0, 0.4, 0]} castShadow>
-          <boxGeometry args={[2.0, 0.8, 1.2]} />
+          <boxGeometry args={[shoulderWidth, 0.8, 1.2]} />
           <meshStandardMaterial 
-            color={mode === 'static' ? '#B8860B' : '#DAA520'} 
+            color={mode === 'static' ? joint.color : '#DAA520'} 
             roughness={0.7} 
             metalness={0.1}
             emissive={mode !== 'static' ? '#DAA520' : '#000000'}
@@ -87,17 +151,43 @@ function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
         
         {/* 榫头凸起（插入卯口） */}
         <mesh position={[0, 0, 0.35]} castShadow>
-          <boxGeometry args={[0.75, 0.55, 0.5]} />
+          <boxGeometry args={[tenonWidth, 0.55, tenonDepth]} />
           <meshStandardMaterial color="#C5A55A" roughness={0.75} />
         </mesh>
+
+        {jointType === 'dovetail' && (
+          <mesh position={[0, -0.01, 0.35]} rotation={[0, 0, Math.PI / 4]} castShadow>
+            <boxGeometry args={[0.68, 0.68, 0.52]} />
+            <meshStandardMaterial color="#D69A3A" roughness={0.75} />
+          </mesh>
+        )}
+
+        {jointType === 'shoulder' && (
+          <>
+            <mesh position={[-0.74, 0.02, 0.35]} castShadow>
+              <boxGeometry args={[0.28, 0.42, 0.62]} />
+              <meshStandardMaterial color="#9B6B45" roughness={0.75} />
+            </mesh>
+            <mesh position={[0.74, 0.02, 0.35]} castShadow>
+              <boxGeometry args={[0.28, 0.42, 0.62]} />
+              <meshStandardMaterial color="#9B6B45" roughness={0.75} />
+            </mesh>
+          </>
+        )}
         
         {/* 榫头标签 */}
         <Html position={[0, 1.0, 0]} center>
           <div className="bg-imperial-deeper/90 text-imperial-gold px-2 py-1 rounded text-xs border border-imperial-gold/30">
-            榫头（子构件）
+            {joint.name}（子构件）
           </div>
         </Html>
       </group>
+
+      <Html position={[0, -0.35, -1.05]} center>
+        <div className="bg-black/70 text-gray-300 px-2 py-1 rounded text-[10px] border border-imperial-gold/20">
+          装配进度 {assemblyProgress}%
+        </div>
+      </Html>
       
       {/* 力的可视化 */}
       {mode === 'vertical' && (
@@ -147,7 +237,15 @@ function SunmaoModel({ mode, time }: { mode: SimulationMode; time: number }) {
 }
 
 /* ========== 动画场景 ========== */
-function SunmaoScene({ mode }: { mode: SimulationMode }) {
+function SunmaoScene({
+  mode,
+  jointType,
+  assemblyProgress,
+}: {
+  mode: SimulationMode;
+  jointType: JointType;
+  assemblyProgress: number;
+}) {
   const [time, setTime] = useState(0);
   
   useFrame((state, delta) => {
@@ -162,7 +260,7 @@ function SunmaoScene({ mode }: { mode: SimulationMode }) {
       <directionalLight position={[5, 8, 5]} intensity={1.2} castShadow />
       <directionalLight position={[-3, 5, -3]} intensity={0.4} />
       
-      <SunmaoModel mode={mode} time={time} />
+      <SunmaoModel mode={mode} time={time} jointType={jointType} assemblyProgress={assemblyProgress} />
       
       <ContactShadows position={[0, -1.21, 0]} opacity={0.4} scale={10} blur={2} />
       <OrbitControls 
@@ -265,6 +363,8 @@ function getEnergyChartOption(mode: SimulationMode) {
 /* ========== 榫卯力学页面主组件 ========== */
 function SunmaoPage() {
   const [mode, setMode] = useState<SimulationMode>('static');
+  const [jointType, setJointType] = useState<JointType>('dovetail');
+  const [assemblyProgress, setAssemblyProgress] = useState(100);
   
   const modes: { id: SimulationMode; label: string; desc: string; icon: string }[] = [
     { 
@@ -294,6 +394,7 @@ function SunmaoPage() {
   ];
   
   const currentMode = modes.find((m) => m.id === mode);
+  const currentJoint = JOINT_TYPES[jointType];
   
   return (
     <div className="min-h-screen ink-bg">
@@ -314,13 +415,72 @@ function SunmaoPage() {
           <div className="lg:col-span-2 h-[500px] md:h-[600px] gold-border rounded-lg overflow-hidden bg-imperial-deeper/50">
             <Canvas camera={{ position: [3, 3, 5], fov: 45 }} shadows>
               <Suspense fallback={null}>
-                <SunmaoScene mode={mode} />
+                <SunmaoScene mode={mode} jointType={jointType} assemblyProgress={assemblyProgress} />
               </Suspense>
             </Canvas>
           </div>
           
           {/* 右侧控制面板 */}
           <div className="space-y-4">
+            {/* 榫型选择 */}
+            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">🧩 榫型实验台</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.entries(JOINT_TYPES) as [JointType, typeof JOINT_TYPES[JointType]][]).map(([id, item]) => (
+                  <button
+                    key={id}
+                    onClick={() => setJointType(id)}
+                    className={`px-3 py-2 rounded text-xs transition-all text-left ${
+                      jointType === id
+                        ? 'bg-imperial-gold/15 text-imperial-gold border border-imperial-gold/30'
+                        : 'border border-gray-700 text-gray-400 hover:border-imperial-gold/40 hover:text-imperial-gold'
+                    }`}
+                  >
+                    <span className="block font-bold">{item.name}</span>
+                    <span className="block text-[10px] opacity-70 mt-0.5">{item.short}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed mt-3">{currentJoint.desc}</p>
+            </div>
+
+            {/* 装配交互 */}
+            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">🔩 拆装交互</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>榫头插入深度</span>
+                  <span className="text-imperial-gold font-bold">{assemblyProgress}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={assemblyProgress}
+                  onChange={(e) => setAssemblyProgress(Number(e.target.value))}
+                  className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-imperial-gold"
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  {[0, 50, 100].map((value) => (
+                    <button
+                      key={value}
+                      onClick={() => setAssemblyProgress(value)}
+                      className={`py-1.5 rounded text-xs transition-all ${
+                        assemblyProgress === value
+                          ? 'bg-imperial-gold text-imperial-dark font-bold'
+                          : 'border border-gray-700 text-gray-500 hover:border-imperial-gold/40 hover:text-imperial-gold'
+                      }`}
+                    >
+                      {value === 0 ? '拆开' : value === 50 ? '半插入' : '锁合'}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  拖动滑块可观察榫头从分离到锁合的过程；锁合越充分，节点越能依靠几何约束和木材接触面传递力。
+                </p>
+              </div>
+            </div>
+
             {/* 模拟模式选择 */}
             <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
               <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">🎮 模拟模式</h3>
@@ -354,6 +514,23 @@ function SunmaoPage() {
                   <p className="text-gray-400 text-xs leading-relaxed">{currentMode.desc}</p>
                 </div>
               )}
+            </div>
+
+            {/* 受力方向说明 */}
+            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">🧭 三向受力</h3>
+              <div className="space-y-2 text-xs">
+                {[
+                  ['受压', currentJoint.compression, 'text-red-400'],
+                  ['受拉', currentJoint.tension, 'text-blue-400'],
+                  ['抗剪', currentJoint.shear, 'text-green-400'],
+                ].map(([label, text, color]) => (
+                  <div key={label} className="rounded border border-imperial-gold/10 bg-black/20 px-3 py-2">
+                    <span className={`${color} font-bold mr-2`}>{label}</span>
+                    <span className="text-gray-400">{text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             
             {/* 榫卯信息 */}

@@ -37,15 +37,15 @@ const SHOWCASE_BUILDINGS: ShowcaseBuilding[] = [
     name: '赵州桥',
     year: 605,
     dynasty: '隋',
-    desc: '世界现存最早的单孔敞肩石拱桥，中国古代桥梁工程巅峰之作。',
-    tech: '敞肩拱·单孔圆弧',
+    desc: '世界现存最早的大跨单孔敞肩石拱桥之一，真实力学核心是低矢跨比圆弧主拱、敞肩小拱调压线和28道并列拱券。',
+    tech: '敞肩小拱·圆弧主拱·并列拱券',
     category: '桥梁',
     impactFactor: 10,
     route: '/bridge',
     features: {
       structureType: '砖石',
       material: ['石'],
-      constructionTech: ['敞肩拱', '单孔圆弧'],
+      constructionTech: ['敞肩拱', '圆弧主拱', '并列拱券'],
     },
   },
   {

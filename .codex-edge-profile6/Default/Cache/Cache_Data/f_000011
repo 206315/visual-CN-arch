@@ -1,0 +1,430 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/AncientArchitectureAssistant.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=935b54e8"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+let prevRefreshReg;
+let prevRefreshSig;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=935b54e8"; const useEffect = __vite__cjsImport3_react["useEffect"]; const useMemo = __vite__cjsImport3_react["useMemo"]; const useRef = __vite__cjsImport3_react["useRef"]; const useState = __vite__cjsImport3_react["useState"];
+import { useLocation, useNavigate } from "/node_modules/.vite/deps/react-router-dom.js?v=935b54e8";
+import {
+  callAncientArchitectureAI,
+  getArchitectureContextByPath
+} from "/src/services/ancientArchitectureAi.ts";
+function AncientArchitectureAssistant() {
+  _s();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const messagesEndRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [linkedRoutes, setLinkedRoutes] = useState([]);
+  const [showHint, setShowHint] = useState(true);
+  const currentContext = useMemo(() => getArchitectureContextByPath(location.pathname), [location.pathname]);
+  useEffect(() => {
+    setMessages([]);
+    setInput("");
+    setLinkedRoutes([]);
+    setShowHint(true);
+  }, [location.pathname]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading, open]);
+  const sendQuestion = async (question) => {
+    const trimmed = question.trim();
+    if (!trimmed || loading) {
+      return;
+    }
+    const userMessage = {
+      role: "user",
+      content: trimmed,
+      timestamp: Date.now()
+    };
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
+    setInput("");
+    setLoading(true);
+    try {
+      const result = await callAncientArchitectureAI({
+        pathname: location.pathname,
+        question: trimmed,
+        messages
+      });
+      const assistantMessage = {
+        role: "assistant",
+        content: result.answer,
+        timestamp: Date.now() + 1
+      };
+      setMessages([...nextMessages, assistantMessage]);
+      setLinkedRoutes(result.linkedRoutes);
+    } catch (error) {
+      const fallback = {
+        role: "assistant",
+        content: error instanceof Error ? `抱歉，AI 服务暂时不可用：${error.message}` : "抱歉，AI 服务暂时不可用，请稍后重试。",
+        timestamp: Date.now() + 1
+      };
+      setMessages([...nextMessages, fallback]);
+      setLinkedRoutes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return /* @__PURE__ */ jsxDEV(Fragment, { children: [
+    !open && showHint && /* @__PURE__ */ jsxDEV("div", { className: "fixed bottom-24 right-6 z-[70] w-[280px] max-w-[calc(100vw-24px)] rounded-2xl border border-imperial-gold/20 bg-imperial-deeper/95 px-4 py-3 shadow-[0_0_28px_rgba(0,0,0,0.38)] backdrop-blur-md", children: /* @__PURE__ */ jsxDEV("div", { className: "flex items-start justify-between gap-3", children: [
+      /* @__PURE__ */ jsxDEV("div", { children: [
+        /* @__PURE__ */ jsxDEV("p", { className: "text-sm font-bold tracking-wider text-imperial-gold", children: "如何开启问答？" }, void 0, false, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 108,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "mt-2 text-xs leading-relaxed text-gray-400", children: [
+          "点击右下角 ",
+          /* @__PURE__ */ jsxDEV("span", { className: "text-imperial-gold", children: "AI 建筑导师" }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 109,
+            columnNumber: 79
+          }, this),
+          " 按钮，即可提问古建筑历史、结构、文化知识，并联动跳转相关页面。"
+        ] }, void 0, true, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 109,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 107,
+        columnNumber: 13
+      }, this),
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          onClick: () => setShowHint(false),
+          className: "text-xs text-gray-500 transition-colors hover:text-gray-300",
+          children: "✕"
+        },
+        void 0,
+        false,
+        {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 111,
+          columnNumber: 13
+        },
+        this
+      )
+    ] }, void 0, true, {
+      fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+      lineNumber: 106,
+      columnNumber: 11
+    }, this) }, void 0, false, {
+      fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+      lineNumber: 105,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        onClick: () => {
+          setOpen((current) => !current);
+          setShowHint(false);
+        },
+        className: "fixed bottom-6 right-6 z-[70] rounded-full border border-imperial-gold/40 bg-imperial-deeper/90 px-5 py-3 text-sm font-bold tracking-wider text-imperial-gold shadow-[0_0_24px_rgba(197,165,90,0.18)] backdrop-blur-md transition-all hover:scale-105 hover:bg-imperial-deeper",
+        children: /* @__PURE__ */ jsxDEV("span", { className: "inline-flex items-center gap-2", children: [
+          !open && /* @__PURE__ */ jsxDEV("span", { className: "inline-block h-2 w-2 rounded-full bg-imperial-gold animate-pulse" }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 129,
+            columnNumber: 21
+          }, this),
+          open ? "收起 AI 导师" : "AI 建筑导师 · 点击提问"
+        ] }, void 0, true, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 128,
+          columnNumber: 9
+        }, this)
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 121,
+        columnNumber: 7
+      },
+      this
+    ),
+    open && /* @__PURE__ */ jsxDEV("div", { className: "fixed bottom-24 right-6 z-[70] flex h-[70vh] w-[380px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-imperial-gold/20 bg-imperial-deeper/95 shadow-[0_0_40px_rgba(0,0,0,0.45)] backdrop-blur-md", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "border-b border-imperial-gold/15 px-4 py-4", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "flex items-start justify-between gap-3", children: [
+          /* @__PURE__ */ jsxDEV("div", { children: [
+            /* @__PURE__ */ jsxDEV("h3", { className: "text-sm font-bold tracking-wider text-imperial-gold", children: "古建筑知识问答" }, void 0, false, {
+              fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+              lineNumber: 139,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("p", { className: "mt-1 text-[11px] tracking-wide text-gray-400", children: [
+              "当前页面：",
+              currentContext.name
+            ] }, void 0, true, {
+              fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+              lineNumber: 140,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 138,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              onClick: () => setOpen(false),
+              className: "text-sm text-gray-500 transition-colors hover:text-gray-300",
+              children: "✕"
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+              lineNumber: 142,
+              columnNumber: 15
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 137,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "mt-3 text-xs leading-relaxed text-gray-400", children: currentContext.summary }, void 0, false, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 149,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 136,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "border-b border-imperial-gold/10 px-4 py-3", children: /* @__PURE__ */ jsxDEV("div", { className: "flex flex-wrap gap-2", children: currentContext.prompts.map(
+        (prompt) => /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: () => void sendQuestion(prompt),
+            className: "rounded-full border border-imperial-gold/20 px-3 py-1.5 text-[11px] text-imperial-gold transition-all hover:bg-imperial-gold/10",
+            children: prompt
+          },
+          prompt,
+          false,
+          {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 155,
+            columnNumber: 13
+          },
+          this
+        )
+      ) }, void 0, false, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 153,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 152,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "flex-1 overflow-y-auto px-4 py-4", children: [
+        messages.length === 0 && !loading && /* @__PURE__ */ jsxDEV("div", { className: "flex h-full flex-col items-center justify-center text-center", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "text-3xl", children: "🏛️" }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 169,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV("p", { className: "mt-3 text-sm text-gray-400", children: "向 AI 提问古建筑结构、历史、文化，或让它推荐您跳转到更适合的模块。" }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 170,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 168,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "space-y-3", children: [
+          messages.map(
+            (message, index) => /* @__PURE__ */ jsxDEV("div", { className: `flex ${message.role === "user" ? "justify-end" : "justify-start"}`, children: /* @__PURE__ */ jsxDEV(
+              "div",
+              {
+                className: `max-w-[88%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${message.role === "user" ? "bg-imperial-gold/20 text-imperial-gold" : "bg-white/5 text-gray-200"}`,
+                children: message.content
+              },
+              void 0,
+              false,
+              {
+                fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+                lineNumber: 177,
+                columnNumber: 19
+              },
+              this
+            ) }, `${message.timestamp}-${index}`, false, {
+              fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+              lineNumber: 176,
+              columnNumber: 13
+            }, this)
+          ),
+          loading && /* @__PURE__ */ jsxDEV("div", { className: "flex justify-start", children: /* @__PURE__ */ jsxDEV("div", { className: "rounded-2xl bg-white/5 px-3 py-2 text-xs text-gray-400", children: "AI 正在整理回答..." }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 191,
+            columnNumber: 19
+          }, this) }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 190,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { ref: messagesEndRef }, void 0, false, {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 195,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 174,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 166,
+        columnNumber: 11
+      }, this),
+      linkedRoutes.length > 0 && /* @__PURE__ */ jsxDEV("div", { className: "border-t border-imperial-gold/10 px-4 py-3", children: [
+        /* @__PURE__ */ jsxDEV("p", { className: "mb-2 text-[11px] tracking-wide text-gray-500", children: "推荐联动模块" }, void 0, false, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 201,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "flex flex-wrap gap-2", children: linkedRoutes.map(
+          (route) => /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              onClick: () => {
+                navigate(route.path);
+                setOpen(false);
+              },
+              className: "rounded-full border border-imperial-gold/20 px-3 py-1.5 text-[11px] text-imperial-gold transition-all hover:bg-imperial-gold/10",
+              children: [
+                "前往",
+                route.label
+              ]
+            },
+            route.path,
+            true,
+            {
+              fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+              lineNumber: 204,
+              columnNumber: 13
+            },
+            this
+          )
+        ) }, void 0, false, {
+          fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+          lineNumber: 202,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 200,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "border-t border-imperial-gold/15 px-4 py-3", children: /* @__PURE__ */ jsxDEV("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            value: input,
+            onChange: (event) => setInput(event.target.value),
+            onKeyDown: (event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                void sendQuestion(input);
+              }
+            },
+            placeholder: "例如：斗拱为什么能抗震？",
+            className: "flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white outline-none transition-colors focus:border-imperial-gold/40",
+            disabled: loading
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 221,
+            columnNumber: 15
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: () => void sendQuestion(input),
+            disabled: !input.trim() || loading,
+            className: "rounded-xl bg-imperial-gold px-4 py-2 text-xs font-bold text-imperial-dark transition-all disabled:cursor-not-allowed disabled:opacity-40",
+            children: "发送"
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+            lineNumber: 234,
+            columnNumber: 15
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 220,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+        lineNumber: 219,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+      lineNumber: 135,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx",
+    lineNumber: 103,
+    columnNumber: 5
+  }, this);
+}
+_s(AncientArchitectureAssistant, "d3d3asYH9cKpfuqUMhIk5imxFrM=", false, function() {
+  return [useLocation, useNavigate];
+});
+_c = AncientArchitectureAssistant;
+export default AncientArchitectureAssistant;
+var _c;
+$RefreshReg$(_c, "AncientArchitectureAssistant");
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/admin/Desktop/visual-CN-arch-main/src/components/AncientArchitectureAssistant.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsUUFNQTtBQUFBLFdBcEJGO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFxQkEsS0F0QkY7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQXVCQTtBQUFBLFNBM0dGO0FBQUE7QUFBQTtBQUFBO0FBQUEsV0E0R0E7QUFBQSxPQTVJSjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBOElBO0FBRUo7QUFBQ04sR0F0TlFELDhCQUE0QjtBQUFBLFVBQ2xCSixhQUNBQyxXQUFXO0FBQUE7QUFBQSxLQUZyQkc7QUF3TlQsZUFBZUE7QUFBNkIsSUFBQXVEO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbInVzZUVmZmVjdCIsInVzZU1lbW8iLCJ1c2VSZWYiLCJ1c2VTdGF0ZSIsInVzZUxvY2F0aW9uIiwidXNlTmF2aWdhdGUiLCJjYWxsQW5jaWVudEFyY2hpdGVjdHVyZUFJIiwiZ2V0QXJjaGl0ZWN0dXJlQ29udGV4dEJ5UGF0aCIsIkFuY2llbnRBcmNoaXRlY3R1cmVBc3Npc3RhbnQiLCJfcyIsImxvY2F0aW9uIiwibmF2aWdhdGUiLCJtZXNzYWdlc0VuZFJlZiIsIm9wZW4iLCJzZXRPcGVuIiwibG9hZGluZyIsInNldExvYWRpbmciLCJpbnB1dCIsInNldElucHV0IiwibWVzc2FnZXMiLCJzZXRNZXNzYWdlcyIsImxpbmtlZFJvdXRlcyIsInNldExpbmtlZFJvdXRlcyIsInNob3dIaW50Iiwic2V0U2hvd0hpbnQiLCJjdXJyZW50Q29udGV4dCIsInBhdGhuYW1lIiwiY3VycmVudCIsInNjcm9sbEludG9WaWV3IiwiYmVoYXZpb3IiLCJzZW5kUXVlc3Rpb24iLCJxdWVzdGlvbiIsInRyaW1tZWQiLCJ0cmltIiwidXNlck1lc3NhZ2UiLCJyb2xlIiwiY29udGVudCIsInRpbWVzdGFtcCIsIkRhdGUiLCJub3ciLCJuZXh0TWVzc2FnZXMiLCJyZXN1bHQiLCJhc3Npc3RhbnRNZXNzYWdlIiwiYW5zd2VyIiwiZXJyb3IiLCJmYWxsYmFjayIsIkVycm9yIiwibWVzc2FnZSIsIm5hbWUiLCJzdW1tYXJ5IiwicHJvbXB0cyIsIm1hcCIsInByb21wdCIsImxlbmd0aCIsImluZGV4Iiwicm91dGUiLCJwYXRoIiwibGFiZWwiLCJldmVudCIsInRhcmdldCIsInZhbHVlIiwia2V5IiwicHJldmVudERlZmF1bHQiLCJfYyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJBbmNpZW50QXJjaGl0ZWN0dXJlQXNzaXN0YW50LnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB1c2VFZmZlY3QsIHVzZU1lbW8sIHVzZVJlZiwgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyB1c2VMb2NhdGlvbiwgdXNlTmF2aWdhdGUgfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJztcbmltcG9ydCB7XG4gIGNhbGxBbmNpZW50QXJjaGl0ZWN0dXJlQUksXG4gIGdldEFyY2hpdGVjdHVyZUNvbnRleHRCeVBhdGgsXG4gIHR5cGUgQW5jaWVudEFyY2hpdGVjdHVyZUNoYXRNZXNzYWdlLFxufSBmcm9tICcuLi9zZXJ2aWNlcy9hbmNpZW50QXJjaGl0ZWN0dXJlQWknO1xuXG50eXBlIExpbmtlZFJvdXRlID0ge1xuICBwYXRoOiBzdHJpbmc7XG4gIGxhYmVsOiBzdHJpbmc7XG59O1xuXG5mdW5jdGlvbiBBbmNpZW50QXJjaGl0ZWN0dXJlQXNzaXN0YW50KCkge1xuICBjb25zdCBsb2NhdGlvbiA9IHVzZUxvY2F0aW9uKCk7XG4gIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTtcbiAgY29uc3QgbWVzc2FnZXNFbmRSZWYgPSB1c2VSZWY8SFRNTERpdkVsZW1lbnQ+KG51bGwpO1xuICBjb25zdCBbb3Blbiwgc2V0T3Blbl0gPSB1c2VTdGF0ZShmYWxzZSk7XG4gIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTtcbiAgY29uc3QgW2lucHV0LCBzZXRJbnB1dF0gPSB1c2VTdGF0ZSgnJyk7XG4gIGNvbnN0IFttZXNzYWdlcywgc2V0TWVzc2FnZXNdID0gdXNlU3RhdGU8QW5jaWVudEFyY2hpdGVjdHVyZUNoYXRNZXNzYWdlW10+KFtdKTtcbiAgY29uc3QgW2xpbmtlZFJvdXRlcywgc2V0TGlua2VkUm91dGVzXSA9IHVzZVN0YXRlPExpbmtlZFJvdXRlW10+KFtdKTtcbiAgY29uc3QgW3Nob3dIaW50LCBzZXRTaG93SGludF0gPSB1c2VTdGF0ZSh0cnVlKTtcblxuICBjb25zdCBjdXJyZW50Q29udGV4dCA9IHVzZU1lbW8oKCkgPT4gZ2V0QXJjaGl0ZWN0dXJlQ29udGV4dEJ5UGF0aChsb2NhdGlvbi5wYXRobmFtZSksIFtsb2NhdGlvbi5wYXRobmFtZV0pO1xuXG4gIHVzZUVmZmVjdCgoKSA9PiB7XG4gICAgc2V0TWVzc2FnZXMoW10pO1xuICAgIHNldElucHV0KCcnKTtcbiAgICBzZXRMaW5rZWRSb3V0ZXMoW10pO1xuICAgIHNldFNob3dIaW50KHRydWUpO1xuICB9LCBbbG9jYXRpb24ucGF0aG5hbWVdKTtcblxuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIG1lc3NhZ2VzRW5kUmVmLmN1cnJlbnQ/LnNjcm9sbEludG9WaWV3KHsgYmVoYXZpb3I6ICdzbW9vdGgnIH0pO1xuICB9LCBbbWVzc2FnZXMsIGxvYWRpbmcsIG9wZW5dKTtcblxuICBjb25zdCBzZW5kUXVlc3Rpb24gPSBhc3luYyAocXVlc3Rpb246IHN0cmluZykgPT4ge1xuICAgIGNvbnN0IHRyaW1tZWQgPSBxdWVzdGlvbi50cmltKCk7XG4gICAgaWYgKCF0cmltbWVkIHx8IGxvYWRpbmcpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBjb25zdCB1c2VyTWVzc2FnZTogQW5jaWVudEFyY2hpdGVjdHVyZUNoYXRNZXNzYWdlID0ge1xuICAgICAgcm9sZTogJ3VzZXInLFxuICAgICAgY29udGVudDogdHJpbW1lZCxcbiAgICAgIHRpbWVzdGFtcDogRGF0ZS5ub3coKSxcbiAgICB9O1xuXG4gICAgY29uc3QgbmV4dE1lc3NhZ2VzID0gWy4uLm1lc3NhZ2VzLCB1c2VyTWVzc2FnZV07XG4gICAgc2V0TWVzc2FnZXMobmV4dE1lc3NhZ2VzKTtcbiAgICBzZXRJbnB1dCgnJyk7XG4gICAgc2V0TG9hZGluZyh0cnVlKTtcblxuICAgIHRyeSB7XG4gICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBjYWxsQW5jaWVudEFyY2hpdGVjdHVyZUFJKHtcbiAgICAgICAgcGF0aG5hbWU6IGxvY2F0aW9uLnBhdGhuYW1lLFxuICAgICAgICBxdWVzdGlvbjogdHJpbW1lZCxcbiAgICAgICAgbWVzc2FnZXMsXG4gICAgICB9KTtcblxuICAgICAgY29uc3QgYXNzaXN0YW50TWVzc2FnZTogQW5jaWVudEFyY2hpdGVjdHVyZUNoYXRNZXNzYWdlID0ge1xuICAgICAgICByb2xlOiAnYXNzaXN0YW50JyxcbiAgICAgICAgY29udGVudDogcmVzdWx0LmFuc3dlcixcbiAgICAgICAgdGltZXN0YW1wOiBEYXRlLm5vdygpICsgMSxcbiAgICAgIH07XG5cbiAgICAgIHNldE1lc3NhZ2VzKFsuLi5uZXh0TWVzc2FnZXMsIGFzc2lzdGFudE1lc3NhZ2VdKTtcbiAgICAgIHNldExpbmtlZFJvdXRlcyhyZXN1bHQubGlua2VkUm91dGVzKTtcbiAgICB9IGNhdGNoIChlcnJvcikge1xuICAgICAgY29uc3QgZmFsbGJhY2s6IEFuY2llbnRBcmNoaXRlY3R1cmVDaGF0TWVzc2FnZSA9IHtcbiAgICAgICAgcm9sZTogJ2Fzc2lzdGFudCcsXG4gICAgICAgIGNvbnRlbnQ6IGVycm9yIGluc3RhbmNlb2YgRXJyb3IgPyBg5oqx5q2J77yMQUkg5pyN5Yqh5pqC5pe25LiN5Y+v55So77yaJHtlcnJvci5tZXNzYWdlfWAgOiAn5oqx5q2J77yMQUkg5pyN5Yqh5pqC5pe25LiN5Y+v55So77yM6K+356iN5ZCO6YeN6K+V44CCJyxcbiAgICAgICAgdGltZXN0YW1wOiBEYXRlLm5vdygpICsgMSxcbiAgICAgIH07XG4gICAgICBzZXRNZXNzYWdlcyhbLi4ubmV4dE1lc3NhZ2VzLCBmYWxsYmFja10pO1xuICAgICAgc2V0TGlua2VkUm91dGVzKFtdKTtcbiAgICB9IGZpbmFsbHkge1xuICAgICAgc2V0TG9hZGluZyhmYWxzZSk7XG4gICAgfVxuICB9O1xuXG4gIHJldHVybiAoXG4gICAgPD5cbiAgICAgIHshb3BlbiAmJiBzaG93SGludCAmJiAoXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZml4ZWQgYm90dG9tLTI0IHJpZ2h0LTYgei1bNzBdIHctWzI4MHB4XSBtYXgtdy1bY2FsYygxMDB2dy0yNHB4KV0gcm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci1pbXBlcmlhbC1nb2xkLzIwIGJnLWltcGVyaWFsLWRlZXBlci85NSBweC00IHB5LTMgc2hhZG93LVswXzBfMjhweF9yZ2JhKDAsMCwwLDAuMzgpXSBiYWNrZHJvcC1ibHVyLW1kXCI+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiBnYXAtM1wiPlxuICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1zbSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXIgdGV4dC1pbXBlcmlhbC1nb2xkXCI+5aaC5L2V5byA5ZCv6Zeu562U77yfPC9wPlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtdC0yIHRleHQteHMgbGVhZGluZy1yZWxheGVkIHRleHQtZ3JheS00MDBcIj7ngrnlh7vlj7PkuIvop5IgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1pbXBlcmlhbC1nb2xkXCI+QUkg5bu6562R5a+85biIPC9zcGFuPiDmjInpkq7vvIzljbPlj6/mj5Dpl67lj6Tlu7rnrZHljoblj7LjgIHnu5PmnoTjgIHmlofljJbnn6Xor4bvvIzlubbogZTliqjot7Povaznm7jlhbPpobXpnaLjgII8L3A+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDxidXR0b25cbiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd0hpbnQoZmFsc2UpfVxuICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ0ZXh0LXhzIHRleHQtZ3JheS01MDAgdHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6dGV4dC1ncmF5LTMwMFwiXG4gICAgICAgICAgICA+XG4gICAgICAgICAgICAgIOKclVxuICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgKX1cblxuICAgICAgPGJ1dHRvblxuICAgICAgICBvbkNsaWNrPXsoKSA9PiB7XG4gICAgICAgICAgc2V0T3BlbigoY3VycmVudCkgPT4gIWN1cnJlbnQpO1xuICAgICAgICAgIHNldFNob3dIaW50KGZhbHNlKTtcbiAgICAgICAgfX1cbiAgICAgICAgY2xhc3NOYW1lPVwiZml4ZWQgYm90dG9tLTYgcmlnaHQtNiB6LVs3MF0gcm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItaW1wZXJpYWwtZ29sZC80MCBiZy1pbXBlcmlhbC1kZWVwZXIvOTAgcHgtNSBweS0zIHRleHQtc20gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVyIHRleHQtaW1wZXJpYWwtZ29sZCBzaGFkb3ctWzBfMF8yNHB4X3JnYmEoMTk3LDE2NSw5MCwwLjE4KV0gYmFja2Ryb3AtYmx1ci1tZCB0cmFuc2l0aW9uLWFsbCBob3ZlcjpzY2FsZS0xMDUgaG92ZXI6YmctaW1wZXJpYWwtZGVlcGVyXCJcbiAgICAgID5cbiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XG4gICAgICAgICAgeyFvcGVuICYmIDxzcGFuIGNsYXNzTmFtZT1cImlubGluZS1ibG9jayBoLTIgdy0yIHJvdW5kZWQtZnVsbCBiZy1pbXBlcmlhbC1nb2xkIGFuaW1hdGUtcHVsc2VcIiAvPn1cbiAgICAgICAgICB7b3BlbiA/ICfmlLbotbcgQUkg5a+85biIJyA6ICdBSSDlu7rnrZHlr7zluIggwrcg54K55Ye75o+Q6ZeuJ31cbiAgICAgICAgPC9zcGFuPlxuICAgICAgPC9idXR0b24+XG5cbiAgICAgIHtvcGVuICYmIChcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmaXhlZCBib3R0b20tMjQgcmlnaHQtNiB6LVs3MF0gZmxleCBoLVs3MHZoXSB3LVszODBweF0gbWF4LXctW2NhbGMoMTAwdnctMjRweCldIGZsZXgtY29sIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLWltcGVyaWFsLWdvbGQvMjAgYmctaW1wZXJpYWwtZGVlcGVyLzk1IHNoYWRvdy1bMF8wXzQwcHhfcmdiYSgwLDAsMCwwLjQ1KV0gYmFja2Ryb3AtYmx1ci1tZFwiPlxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYm9yZGVyLWIgYm9yZGVyLWltcGVyaWFsLWdvbGQvMTUgcHgtNCBweS00XCI+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIGdhcC0zXCI+XG4gICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVyIHRleHQtaW1wZXJpYWwtZ29sZFwiPuWPpOW7uuetkeefpeivhumXruetlDwvaDM+XG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwibXQtMSB0ZXh0LVsxMXB4XSB0cmFja2luZy13aWRlIHRleHQtZ3JheS00MDBcIj7lvZPliY3pobXpnaLvvJp7Y3VycmVudENvbnRleHQubmFtZX08L3A+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8YnV0dG9uXG4gICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0T3BlbihmYWxzZSl9XG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNTAwIHRyYW5zaXRpb24tY29sb3JzIGhvdmVyOnRleHQtZ3JheS0zMDBcIlxuICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAg4pyVXG4gICAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtdC0zIHRleHQteHMgbGVhZGluZy1yZWxheGVkIHRleHQtZ3JheS00MDBcIj57Y3VycmVudENvbnRleHQuc3VtbWFyeX08L3A+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJvcmRlci1iIGJvcmRlci1pbXBlcmlhbC1nb2xkLzEwIHB4LTQgcHktM1wiPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtd3JhcCBnYXAtMlwiPlxuICAgICAgICAgICAgICB7Y3VycmVudENvbnRleHQucHJvbXB0cy5tYXAoKHByb21wdCkgPT4gKFxuICAgICAgICAgICAgICAgIDxidXR0b25cbiAgICAgICAgICAgICAgICAgIGtleT17cHJvbXB0fVxuICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gdm9pZCBzZW5kUXVlc3Rpb24ocHJvbXB0KX1cbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInJvdW5kZWQtZnVsbCBib3JkZXIgYm9yZGVyLWltcGVyaWFsLWdvbGQvMjAgcHgtMyBweS0xLjUgdGV4dC1bMTFweF0gdGV4dC1pbXBlcmlhbC1nb2xkIHRyYW5zaXRpb24tYWxsIGhvdmVyOmJnLWltcGVyaWFsLWdvbGQvMTBcIlxuICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgIHtwcm9tcHR9XG4gICAgICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgICAgICkpfVxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgtMSBvdmVyZmxvdy15LWF1dG8gcHgtNCBweS00XCI+XG4gICAgICAgICAgICB7bWVzc2FnZXMubGVuZ3RoID09PSAwICYmICFsb2FkaW5nICYmIChcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGgtZnVsbCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdGV4dC1jZW50ZXJcIj5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtM3hsXCI+8J+Pm++4jzwvZGl2PlxuICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cIm10LTMgdGV4dC1zbSB0ZXh0LWdyYXktNDAwXCI+5ZCRIEFJIOaPkOmXruWPpOW7uuetkee7k+aehOOAgeWOhuWPsuOAgeaWh+WMlu+8jOaIluiuqeWug+aOqOiNkOaCqOi3s+i9rOWIsOabtOmAguWQiOeahOaooeWdl+OAgjwvcD5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICApfVxuXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxuICAgICAgICAgICAgICB7bWVzc2FnZXMubWFwKChtZXNzYWdlLCBpbmRleCkgPT4gKFxuICAgICAgICAgICAgICAgIDxkaXYga2V5PXtgJHttZXNzYWdlLnRpbWVzdGFtcH0tJHtpbmRleH1gfSBjbGFzc05hbWU9e2BmbGV4ICR7bWVzc2FnZS5yb2xlID09PSAndXNlcicgPyAnanVzdGlmeS1lbmQnIDogJ2p1c3RpZnktc3RhcnQnfWB9PlxuICAgICAgICAgICAgICAgICAgPGRpdlxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BtYXgtdy1bODglXSByb3VuZGVkLTJ4bCBweC0zIHB5LTIgdGV4dC14cyBsZWFkaW5nLXJlbGF4ZWQgJHtcbiAgICAgICAgICAgICAgICAgICAgICBtZXNzYWdlLnJvbGUgPT09ICd1c2VyJ1xuICAgICAgICAgICAgICAgICAgICAgICAgPyAnYmctaW1wZXJpYWwtZ29sZC8yMCB0ZXh0LWltcGVyaWFsLWdvbGQnXG4gICAgICAgICAgICAgICAgICAgICAgICA6ICdiZy13aGl0ZS81IHRleHQtZ3JheS0yMDAnXG4gICAgICAgICAgICAgICAgICAgIH1gfVxuICAgICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgICB7bWVzc2FnZS5jb250ZW50fVxuICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICkpfVxuXG4gICAgICAgICAgICAgIHtsb2FkaW5nICYmIChcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgganVzdGlmeS1zdGFydFwiPlxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJyb3VuZGVkLTJ4bCBiZy13aGl0ZS81IHB4LTMgcHktMiB0ZXh0LXhzIHRleHQtZ3JheS00MDBcIj5BSSDmraPlnKjmlbTnkIblm57nrZQuLi48L2Rpdj5cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgKX1cblxuICAgICAgICAgICAgICA8ZGl2IHJlZj17bWVzc2FnZXNFbmRSZWZ9IC8+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgIHtsaW5rZWRSb3V0ZXMubGVuZ3RoID4gMCAmJiAoXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJvcmRlci10IGJvcmRlci1pbXBlcmlhbC1nb2xkLzEwIHB4LTQgcHktM1wiPlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtYi0yIHRleHQtWzExcHhdIHRyYWNraW5nLXdpZGUgdGV4dC1ncmF5LTUwMFwiPuaOqOiNkOiBlOWKqOaooeWdlzwvcD5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtd3JhcCBnYXAtMlwiPlxuICAgICAgICAgICAgICAgIHtsaW5rZWRSb3V0ZXMubWFwKChyb3V0ZSkgPT4gKFxuICAgICAgICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICAgICAgICBrZXk9e3JvdXRlLnBhdGh9XG4gICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHtcbiAgICAgICAgICAgICAgICAgICAgICBuYXZpZ2F0ZShyb3V0ZS5wYXRoKTtcbiAgICAgICAgICAgICAgICAgICAgICBzZXRPcGVuKGZhbHNlKTtcbiAgICAgICAgICAgICAgICAgICAgfX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItaW1wZXJpYWwtZ29sZC8yMCBweC0zIHB5LTEuNSB0ZXh0LVsxMXB4XSB0ZXh0LWltcGVyaWFsLWdvbGQgdHJhbnNpdGlvbi1hbGwgaG92ZXI6YmctaW1wZXJpYWwtZ29sZC8xMFwiXG4gICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgIOWJjeW+gHtyb3V0ZS5sYWJlbH1cbiAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICAgICAgICkpfVxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICl9XG5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJvcmRlci10IGJvcmRlci1pbXBlcmlhbC1nb2xkLzE1IHB4LTQgcHktM1wiPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGdhcC0yXCI+XG4gICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgIHZhbHVlPXtpbnB1dH1cbiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGV2ZW50KSA9PiBzZXRJbnB1dChldmVudC50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgIG9uS2V5RG93bj17KGV2ZW50KSA9PiB7XG4gICAgICAgICAgICAgICAgICBpZiAoZXZlbnQua2V5ID09PSAnRW50ZXInKSB7XG4gICAgICAgICAgICAgICAgICAgIGV2ZW50LnByZXZlbnREZWZhdWx0KCk7XG4gICAgICAgICAgICAgICAgICAgIHZvaWQgc2VuZFF1ZXN0aW9uKGlucHV0KTtcbiAgICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwi5L6L5aaC77ya5paX5oux5Li65LuA5LmI6IO95oqX6ZyH77yfXCJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJmbGV4LTEgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIGJnLWJsYWNrLzIwIHB4LTMgcHktMiB0ZXh0LXhzIHRleHQtd2hpdGUgb3V0bGluZS1ub25lIHRyYW5zaXRpb24tY29sb3JzIGZvY3VzOmJvcmRlci1pbXBlcmlhbC1nb2xkLzQwXCJcbiAgICAgICAgICAgICAgICBkaXNhYmxlZD17bG9hZGluZ31cbiAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHZvaWQgc2VuZFF1ZXN0aW9uKGlucHV0KX1cbiAgICAgICAgICAgICAgICBkaXNhYmxlZD17IWlucHV0LnRyaW0oKSB8fCBsb2FkaW5nfVxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInJvdW5kZWQteGwgYmctaW1wZXJpYWwtZ29sZCBweC00IHB5LTIgdGV4dC14cyBmb250LWJvbGQgdGV4dC1pbXBlcmlhbC1kYXJrIHRyYW5zaXRpb24tYWxsIGRpc2FibGVkOmN1cnNvci1ub3QtYWxsb3dlZCBkaXNhYmxlZDpvcGFjaXR5LTQwXCJcbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIOWPkemAgVxuICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICA8L2Rpdj5cbiAgICAgICl9XG4gICAgPC8+XG4gICk7XG59XG5cbmV4cG9ydCBkZWZhdWx0IEFuY2llbnRBcmNoaXRlY3R1cmVBc3Npc3RhbnQ7XG4iXSwiZmlsZSI6IkM6L1VzZXJzL2FkbWluL0Rlc2t0b3AvdmlzdWFsLUNOLWFyY2gtbWFpbi9zcmMvY29tcG9uZW50cy9BbmNpZW50QXJjaGl0ZWN0dXJlQXNzaXN0YW50LnRzeCJ9

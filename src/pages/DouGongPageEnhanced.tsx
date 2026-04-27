@@ -8,6 +8,12 @@ type PartType = 'dou' | 'gong' | 'ang' | 'fang' | 'chuan' | 'pillar';
 
 type VisibilityState = Record<PartType, boolean>;
 
+type ForceStep = {
+  layer: number;
+  label: string;
+  desc: string;
+};
+
 /* 构件数据结构 */
 interface PartDef {
   name: string;
@@ -148,6 +154,18 @@ const DOUGONG_PARTS: PartDef[] = [
   },
 ];
 
+const FORCE_STEPS: ForceStep[] = [
+  { layer: 8, label: '屋面与椽条', desc: '屋面荷载先由椽条汇集到承椽枋。' },
+  { layer: 7, label: '枋木分配', desc: '枋木把集中荷载摊分到上层斗与拱臂。' },
+  { layer: 6, label: '齐心斗与散斗', desc: '斗承接上部压力，并把荷载转交给二跳拱臂。' },
+  { layer: 5, label: '下昂杠杆', desc: '下昂以斜向杠杆方式托挑屋檐，改变力的传递路径。' },
+  { layer: 4, label: '二跳拱层', desc: '二跳华拱和瓜子拱扩大支承范围，降低局部集中受力。' },
+  { layer: 3, label: '交互斗承压', desc: '小斗在拱臂节点处承压，形成多点支承。' },
+  { layer: 2, label: '一跳拱层', desc: '华拱与泥道拱正交工作，把荷载导向中心大斗。' },
+  { layer: 1, label: '栌斗汇力', desc: '栌斗汇集各层传来的压力，是斗拱的关键受力节点。' },
+  { layer: 0, label: '柱头落地', desc: '柱头最终把压力传入立柱和下部基础。' },
+];
+
 /* 几何体生成函数 */
 function createDouGeometry(topW: number, botW: number, h: number, d: number, slotW: number, slotD: number): THREE.BufferGeometry {
   const shape = new THREE.Shape();
@@ -244,6 +262,9 @@ function PartMesh({
   isVisible,
   selected,
   onSelect,
+  forceLoad,
+  forceActiveLayer,
+  showForceFlow,
 }: {
   part: PartDef;
   index: number;
@@ -252,6 +273,9 @@ function PartMesh({
   isVisible: boolean;
   selected: boolean;
   onSelect: () => void;
+  forceLoad: number;
+  forceActiveLayer: number;
+  showForceFlow: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -296,9 +320,12 @@ function PartMesh({
     groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.08);
   });
 
-  const matColor = selected ? '#FFD700' : hovered ? '#E8C56D' : part.color;
-  const emissive = selected ? '#FFD700' : hovered ? '#C5A55A' : '#000000';
-  const emissiveIntensity = selected ? 0.25 : hovered ? 0.12 : 0;
+  const forceDistance = Math.abs(part.layer - forceActiveLayer);
+  const forceInfluence = showForceFlow ? Math.max(0, 1 - forceDistance / 2.2) * (forceLoad / 100) : 0;
+  const forceColor = new THREE.Color(part.color).lerp(new THREE.Color('#FFB347'), forceInfluence);
+  const matColor = selected ? '#FFD700' : hovered ? '#E8C56D' : forceColor.getStyle();
+  const emissive = selected ? '#FFD700' : hovered ? '#C5A55A' : forceInfluence > 0 ? '#FF9A2A' : '#000000';
+  const emissiveIntensity = selected ? 0.25 : hovered ? 0.12 : forceInfluence * 0.38;
 
   const geometry = useMemo(() => {
     const p = part.params;
@@ -420,14 +447,28 @@ function DouGongScene({
   selectedIdx,
   visibleTypes,
   soloMode,
+  forceLoad,
+  showForceFlow,
   onSelect,
 }: {
   explodeMode: 'none' | 'vertical' | 'circular';
   selectedIdx: number | null;
   visibleTypes: VisibilityState;
   soloMode: boolean;
+  forceLoad: number;
+  showForceFlow: boolean;
   onSelect: (i: number | null) => void;
 }) {
+  const [forcePhase, setForcePhase] = useState(0);
+
+  useFrame((_, delta) => {
+    if (showForceFlow) {
+      setForcePhase((current) => (current + delta * 1.15) % FORCE_STEPS.length);
+    }
+  });
+
+  const activeForceStep = FORCE_STEPS[Math.floor(forcePhase) % FORCE_STEPS.length];
+
   return (
     <>
       <ambientLight intensity={0.35} />
@@ -444,9 +485,26 @@ function DouGongScene({
           explodeMode={explodeMode}
           isVisible={visibleTypes[part.type] && (!soloMode || selectedIdx === null || selectedIdx === i)}
           selected={selectedIdx === i}
+          forceLoad={forceLoad}
+          forceActiveLayer={activeForceStep.layer}
+          showForceFlow={showForceFlow}
           onSelect={() => onSelect(selectedIdx === i ? null : i)}
         />
       ))}
+
+      {showForceFlow && explodeMode === 'none' && (
+        <group>
+          <Html position={[0, 2.75, 0]} center distanceFactor={8}>
+            <div className="bg-black/80 text-imperial-gold px-3 py-2 rounded border border-imperial-gold/30 text-xs whitespace-nowrap">
+              {activeForceStep.label} · 荷载 {forceLoad}%
+            </div>
+          </Html>
+          <mesh position={[0, 2.52, 0]} rotation={[Math.PI, 0, 0]}>
+            <coneGeometry args={[0.14 + forceLoad * 0.001, 0.58, 18]} />
+            <meshStandardMaterial color="#FF9A2A" emissive="#FF9A2A" emissiveIntensity={0.45} />
+          </mesh>
+        </group>
+      )}
 
       <ContactShadows position={[0, -0.95, 0]} opacity={0.5} scale={12} blur={2.5} far={4} />
       <OrbitControls
@@ -469,6 +527,8 @@ function DouGongPageEnhanced() {
   const [explodeMode, setExplodeMode] = useState<'none' | 'vertical' | 'circular'>('none');
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [soloMode, setSoloMode] = useState(false);
+  const [showForceFlow, setShowForceFlow] = useState(true);
+  const [forceLoad, setForceLoad] = useState(65);
   const [visibleTypes, setVisibleTypes] = useState<VisibilityState>({
     dou: true,
     gong: true,
@@ -479,6 +539,7 @@ function DouGongPageEnhanced() {
   });
 
   const selectedPart = selectedIdx !== null ? DOUGONG_PARTS[selectedIdx] : null;
+  const loadLevel = forceLoad > 75 ? '高荷载' : forceLoad > 40 ? '中等荷载' : '轻荷载';
   const visiblePartCount = useMemo(
     () => DOUGONG_PARTS.filter((part, index) => visibleTypes[part.type] && (!soloMode || selectedIdx === null || selectedIdx === index)).length,
     [visibleTypes, soloMode, selectedIdx]
@@ -525,6 +586,8 @@ function DouGongPageEnhanced() {
                   selectedIdx={selectedIdx}
                   visibleTypes={visibleTypes}
                   soloMode={soloMode}
+                  forceLoad={forceLoad}
+                  showForceFlow={showForceFlow}
                   onSelect={setSelectedIdx}
                 />
               </Suspense>
@@ -575,6 +638,46 @@ function DouGongPageEnhanced() {
               <p className="text-[10px] text-gray-600 mt-2">
                 当前显示 {visiblePartCount} / {DOUGONG_PARTS.length} 个构件 · {new Set(DOUGONG_PARTS.map(p => p.layer)).size} 个层级
               </p>
+            </div>
+
+            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">⚖️ 受力传递</h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowForceFlow((current) => !current)}
+                  className={`w-full py-2 rounded text-xs tracking-wider transition-all ${
+                    showForceFlow
+                      ? 'bg-imperial-gold text-imperial-dark font-bold'
+                      : 'border border-imperial-gold/40 text-imperial-gold hover:bg-imperial-gold/10'
+                  }`}
+                >
+                  {showForceFlow ? '受力动画 ON' : '受力动画 OFF'}
+                </button>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-400 mb-2">
+                    <span>屋面荷载</span>
+                    <span className="text-imperial-gold font-bold">{forceLoad}% · {loadLevel}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={10}
+                    max={100}
+                    value={forceLoad}
+                    onChange={(e) => setForceLoad(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-imperial-gold"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-[10px]">
+                  {FORCE_STEPS.slice(0, 6).map((step) => (
+                    <div key={step.layer} className="rounded border border-imperial-gold/10 bg-black/20 px-2 py-1 text-gray-400">
+                      <span className="text-imperial-gold/80">L{step.layer}</span> {step.label}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  高亮波从椽条、枋木、斗拱层逐步传到柱头，展示屋面荷载如何被层层分散，而不是集中压在单一节点上。
+                </p>
+              </div>
             </div>
 
             <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
@@ -633,6 +736,8 @@ function DouGongPageEnhanced() {
             <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
               <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">✨ 新增功能</h3>
               <ul className="text-xs text-gray-400 space-y-2">
+                <li>• 受力传递：屋面荷载沿椽、枋、斗、拱、柱逐层高亮</li>
+                <li>• 荷载调节：拖动滑块观察构件颜色随受力强弱变化</li>
                 <li>• 垂直拆解：按层级垂直分离构件</li>
                 <li>• 环形拆解：构件呈圆形向外扩散</li>
                 <li>• 聚焦选中：仅保留当前研究构件</li>

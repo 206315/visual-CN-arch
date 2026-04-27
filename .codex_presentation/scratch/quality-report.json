@@ -1,0 +1,14 @@
+{
+  "workspace": "C:\\Users\\admin\\Desktop\\visual-CN-arch-main\\.codex_presentation",
+  "pptx": "C:\\Users\\admin\\Desktop\\visual-CN-arch-main\\.codex_presentation\\output\\output.pptx",
+  "checks": {
+    "output_hygiene": {
+      "output_dir": "C:\\Users\\admin\\Desktop\\visual-CN-arch-main\\.codex_presentation\\output",
+      "unexpected_files": []
+    }
+  },
+  "failures": [
+    "PPTX package inspection failed: unzip -Z1 C:\\Users\\admin\\Desktop\\visual-CN-arch-main\\.codex_presentation\\output\\output.pptx failed"
+  ],
+  "warnings": []
+}

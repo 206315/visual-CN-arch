@@ -40,22 +40,57 @@ const BRIDGE_SPECS = {
 
 const BRIDGE_INFO = {
   name: '赵州桥（安济桥）',
-  builder: '李春',
-  dynasty: '隋代（约605年）',
-  span: '37.02米',
-  rise: '7.23米',
-  ratio: '约1:5.12（矢跨比极小，世界首创）',
-  feature: '敞肩拱——主拱两端各有两个小拱，既减轻桥身重量，又利于排洪，还增添美观。',
+  builder: '传统上归于隋代工匠李春',
+  dynasty: '隋代，约 605-616 年',
+  span: '37.02 m',
+  rise: '7.23 m',
+  ratio: '约 1:5.12（矢跨比约 0.195）',
+  feature: '主拱为低矢跨比圆弧石拱，两侧设 4 个敞肩小拱，用于减重、泄洪并让恒载压力线更贴近拱轴。',
 };
+
+const PAPER_BASED_HIGHLIGHTS = [
+  {
+    title: '低矢跨比圆弧主拱',
+    body: '主拱不是高耸的半圆拱，而是较扁的圆弧拱。论文认为，这种几何形式提升跨越能力，但也使桥台必须可靠承受较大的水平推力，因此拱轴与压力线的贴合尤为关键。',
+    tone: 'green',
+  },
+  {
+    title: '敞肩小拱是受力优化构件',
+    body: '两侧四个敞肩小拱并非装饰孔洞。论文给出它们可减轻约 700 t 自重、增加约 16.5% 过水面积，并显著改善主拱恒载压力线，使主拱更接近纯受压工作。',
+    tone: 'blue',
+  },
+  {
+    title: '28 道并列薄拱券',
+    body: '赵州桥沿桥宽方向由 28 道并列薄拱券组成，每道约 0.34 m。它们共同承担荷载，也允许局部差异变形，提高结构适应性与维修便利性，但不应被表述为现代意义上的隔震层。',
+    tone: 'yellow',
+  },
+  {
+    title: '横向联系与浅基础共同工作',
+    body: '桥身通过横向铁拉杆、铁件连接与较宽拱脚增强整体性；桥台和浅基础共同承受拱推力。论文记录其长期沉降较小，说明上部受力组织对基础工作状态非常重要。',
+    tone: 'red',
+  },
+];
+
+const PAPER_METRICS = [
+  { label: '减重效果', value: '约 700 t', detail: '敞肩小拱降低恒载与地震惯性力' },
+  { label: '过水面积增幅', value: '约 16.5%', detail: '洪水期减小壅水与附加水压力' },
+  { label: '并列拱券', value: '28 道', detail: '沿桥宽并列布置，单道宽约 0.34 m' },
+  { label: '压力线偏差', value: '< 5%', detail: '有肩拱时压力线与拱轴更贴合' },
+];
+
+const STRUCTURE_REFERENCES = [
+  'Zhou, M. et al. Spanning over 1400 years: China’s remarkable Zhaozhou Bridge, 2017.',
+  '刘云、王大钧：《伏拱对赵州桥力学行为的影响》，《力学与实践》, 2001。',
+];
 
 type ViewMode = 'solid' | 'pointcloud' | 'wireframe';
 
 /* ========== 地震参数预设 ========== */
 const EARTHQUAKE_PRESETS = [
-  { id: 'mild', label: '5级（弱震）', magnitude: 5, intensity: 0.3, freq: 2.5, desc: '有感地震，结构安全' },
-  { id: 'moderate', label: '6级（中震）', magnitude: 6, intensity: 0.6, freq: 3.5, desc: '中等破坏，考验结构' },
-  { id: 'strong', label: '7级（强震）', magnitude: 7, intensity: 1.0, freq: 5.0, desc: '严重破坏，赵州桥历史上多次经受' },
-  { id: 'extreme', label: '8级（烈震）', magnitude: 8, intensity: 1.5, freq: 6.0, desc: '极端工况，验证极限抗震' },
+  { id: 'mild', label: '5级（弱震）', magnitude: 5, intensity: 0.3, freq: 2.5, desc: '轻度地震输入，观察主拱与桥台的基本动力响应。' },
+  { id: 'moderate', label: '6级（中震）', magnitude: 6, intensity: 0.6, freq: 3.5, desc: '中等地震输入，拱脚与 1/4 跨的水平推力效应更明显。' },
+  { id: 'strong', label: '7级（强震）', magnitude: 7, intensity: 1.0, freq: 5.0, desc: '强震工况下仍以压应力主导，重点观察拱脚与桥台受力。' },
+  { id: 'extreme', label: '8级（烈震）', magnitude: 8, intensity: 1.5, freq: 6.0, desc: '超常输入用于教学演示，不等同于实桥实测极限状态。' },
 ];
 
 /* ========== 应力热力图颜色插值 ========== */
@@ -89,7 +124,7 @@ function stoneColor(seed: number): string {
 
 /* ========== 几何工具函数 ========== */
 
-function createCatenaryArchCurve(span: number, rise: number, radius: number, segments: number): THREE.Vector3[] {
+function createCircularArchCurve(span: number, rise: number, radius: number, segments: number): THREE.Vector3[] {
   const pts: THREE.Vector3[] = [];
   const centerY = radius - rise;
   for (let i = 0; i <= segments; i++) {
@@ -123,10 +158,10 @@ function createArchShape(
 ): THREE.Shape {
   const shape = new THREE.Shape();
   const outerCurve = radius
-    ? createCatenaryArchCurve(span, rise - deformation, radius, segments)
+    ? createCircularArchCurve(span, rise - deformation, radius, segments)
     : createSmallArchCurve(span, rise - deformation, segments);
   const innerCurve = radius
-    ? createCatenaryArchCurve(span, rise - thickness - deformation, radius, segments)
+    ? createCircularArchCurve(span, rise - thickness - deformation, radius, segments)
     : createSmallArchCurve(span, rise - thickness - deformation, segments);
   outerCurve.forEach((p, i) => (i === 0 ? shape.moveTo(p.x, p.y) : shape.lineTo(p.x, p.y)));
   for (let i = innerCurve.length - 1; i >= 0; i--) shape.lineTo(innerCurve[i].x, innerCurve[i].y);
@@ -139,29 +174,32 @@ function computeStressField(
   load: number, forcePosition: number,
   earthquakeIntensity: number, earthquakeTime: number, isQuaking: boolean
 ): { positions: string[]; values: number[]; maxStress: number } {
-  const positions = ['左拱脚', '左1/4跨', '拱顶', '右1/4跨', '右拱脚'];
+  const positions = ['左拱脚', '左 1/4 跨', '拱顶', '右 1/4 跨', '右拱脚'];
   const posCoords = [-1, -0.5, 0, 0.5, 1];
-  const baseStress = [85, 45, 25, 45, 85];
+  const baseStress = [88, 62, 38, 62, 88];
 
   const values = baseStress.map((base, i) => {
     const posCoord = posCoords[i];
     const distance = Math.abs(posCoord - forcePosition);
-    const influenceFactor = 1 - distance * 0.3;
-    const stressIncrease = load * influenceFactor * 0.8;
+    const influenceFactor = Math.max(0.2, 1 - distance * 0.55);
+    const loadIncrease = load * influenceFactor * (Math.abs(posCoord) > 0.8 ? 0.18 : 0.24);
+    const thrustBoost = load * (Math.abs(posCoord) > 0.8 ? 0.12 : Math.abs(posCoord) > 0.3 ? 0.05 : 0.02);
+    const openSpandrelRelief = Math.abs(posCoord) < 0.65 ? -6 : 0;
 
     let seismicStress = 0;
     if (isQuaking && earthquakeIntensity > 0) {
       const wavePhase = earthquakeTime * 5.0 + posCoord * 2.0;
-      const primaryWave = Math.sin(wavePhase) * earthquakeIntensity * 18;
-      const secondaryWave = Math.sin(wavePhase * 2.3 + 1.2) * earthquakeIntensity * 8;
-      const highFreq = Math.sin(wavePhase * 7.1) * earthquakeIntensity * 4;
+      const primaryWave = Math.sin(wavePhase) * earthquakeIntensity * 11;
+      const secondaryWave = Math.sin(wavePhase * 2.3 + 1.2) * earthquakeIntensity * 5;
+      const highFreq = Math.sin(wavePhase * 7.1) * earthquakeIntensity * 2.5;
       seismicStress = Math.abs(primaryWave + secondaryWave + highFreq);
 
-      if (Math.abs(posCoord) > 0.8) seismicStress *= 1.4;
-      if (Math.abs(posCoord) < 0.2) seismicStress *= 0.6;
+      if (Math.abs(posCoord) > 0.8) seismicStress *= 1.45;
+      else if (Math.abs(posCoord) > 0.3) seismicStress *= 1.1;
+      else seismicStress *= 0.72;
     }
 
-    return Math.min(120, base + stressIncrease + seismicStress);
+    return Math.min(120, Math.max(18, base + loadIncrease + thrustBoost + openSpandrelRelief + seismicStress));
   });
 
   return { positions, values, maxStress: 120 };
@@ -312,7 +350,7 @@ function BridgeModel({
   }, [showStressHeatmap, stressField]);
 
   const mainArchCurve = useMemo(() => {
-    return createCatenaryArchCurve(S.mainSpan, S.mainRise - deformation, S.archRadius, 120);
+    return createCircularArchCurve(S.mainSpan, S.mainRise - deformation, S.archRadius, 120);
   }, [deformation]);
 
   const mainArchShape = useMemo(() => {
@@ -727,14 +765,11 @@ function BridgeModel({
       {/* 地面裂缝 */}
       {isQuaking && <GroundCracks intensity={earthquakeIntensity} time={earthquakeTime} />}
 
-      {/* 落石碎片 */}
-      <FallingDebris intensity={earthquakeIntensity} time={earthquakeTime} isQuaking={isQuaking} />
-
       {/* 应力色标图例 */}
       {showStressHeatmap && (
         <Html position={[S.mainSpan / 2 + 4, S.deckHeight / 2, 0]} center>
           <div className="bg-black/80 backdrop-blur-sm rounded px-2 py-1.5 border border-imperial-gold/20">
-            <div className="text-[9px] text-imperial-gold mb-1 text-center font-bold">应力 MPa</div>
+            <div className="text-[9px] text-imperial-gold mb-1 text-center font-bold">相对压应力指标</div>
             <div className="w-4 h-24 rounded-sm overflow-hidden" style={{
               background: 'linear-gradient(to top, #1a9850, #91cf60, #fee08b, #fc8d59, #d73027)'
             }} />
@@ -812,7 +847,7 @@ function getDynamicStressChartOption(
     },
     yAxis: {
       type: 'value' as const,
-      name: '应力 (MPa)',
+      name: '相对压应力',
       nameTextStyle: { color: '#999', fontSize: 10 },
       max: 130,
       axisLine: { lineStyle: { color: '#C5A55A40' } },
@@ -974,25 +1009,28 @@ function BridgePage() {
   const stressField = computeStressField(load, forcePosition, earthquakePreset.intensity, earthquakeTime, isQuaking);
 
   const peakStress = Math.max(...stressField.values);
-  const safetyFactor = 120 / peakStress;
+  const thrustLineFit = Math.max(
+    72,
+    97 - load * 0.08 - Math.abs(forcePosition) * 4 - (isQuaking ? earthquakePreset.intensity * 12 : earthquakePreset.intensity * 4),
+  );
 
   return (
     <div className="min-h-screen ink-bg">
       {/* 页面标题 */}
-      <div className="text-center pt-8 pb-4 px-4">
+      <div className="text-center pt-6 pb-3 px-4">
         <h1 className="text-3xl md:text-4xl font-bold text-imperial-gold tracking-wider">
           赵州桥 · 千年抗震奥秘
         </h1>
         <p className="text-gray-500 text-sm mt-2 tracking-widest">
-          敞肩拱结构力学可视化 · 地震模拟 · 应力动态分析
+          基于论文结论的敞肩石拱力学可视化 · 地震响应演示 · 结构知识展示
         </p>
-        <div className="chinese-divider max-w-xs mx-auto mt-4" />
+        <div className="chinese-divider max-w-xs mx-auto mt-3" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-[1500px] mx-auto px-4 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* 3D 视口 */}
-          <div className="lg:col-span-2 h-[500px] md:h-[600px] gold-border rounded-lg overflow-hidden bg-imperial-deeper/50 relative">
+          <div className="lg:col-span-8 h-[460px] md:h-[560px] lg:h-[620px] gold-border rounded-lg overflow-hidden bg-imperial-deeper/50 relative">
             {isQuaking && (
               <div className="absolute inset-0 pointer-events-none z-10 border-2 border-red-500/30 rounded-lg animate-pulse" />
             )}
@@ -1080,7 +1118,7 @@ function BridgePage() {
               <div className="absolute bottom-3 left-3 right-3 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2">
                 <p className="text-[11px] text-gray-300 leading-relaxed">
                   <span className="text-imperial-gold font-bold">SfM 稀疏重建</span>
-                  {' '}— 基于多视图几何与三角化算法从照片恢复桥梁三维点云。
+                  {' '}— 基于多视图几何与三角化算法从照片恢复桥梁三维点云，用于校核赵州桥主拱、敞肩小拱与桥面几何关系。
                   <span className="text-blue-400"> 蓝色八面体</span> 标记相机位置，
                   <span className="text-red-400"> 红色线框</span> 为重建包围盒。
                 </p>
@@ -1089,13 +1127,13 @@ function BridgePage() {
           </div>
 
           {/* 右侧控制面板 */}
-          <div className="space-y-4">
+          <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 content-start">
             {/* 地震模拟控制 */}
-            <div className={`gold-border rounded-lg p-4 bg-imperial-deeper/50 ${isQuaking ? 'ring-1 ring-red-500/30' : ''}`}>
-              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">
+            <div className={`gold-border rounded-lg p-3.5 bg-imperial-deeper/50 ${isQuaking ? 'ring-1 ring-red-500/30' : ''}`}>
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">
                 地震模拟
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {/* 震级选择 */}
                 <div className="grid grid-cols-2 gap-1.5">
                   {EARTHQUAKE_PRESETS.map((preset) => (
@@ -1134,15 +1172,15 @@ function BridgePage() {
                 {(isQuaking || showStressHeatmap) && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-gray-500">峰值应力</span>
+                      <span className="text-gray-500">峰值相对压应力</span>
                       <span className={`font-bold ${peakStress > 100 ? 'text-red-400' : peakStress > 70 ? 'text-yellow-400' : 'text-green-400'}`}>
-                        {peakStress.toFixed(1)} MPa
+                        {peakStress.toFixed(1)} / 120
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-gray-500">安全系数</span>
-                      <span className={`font-bold ${safetyFactor < 1.2 ? 'text-red-400' : safetyFactor < 1.5 ? 'text-yellow-400' : 'text-green-400'}`}>
-                        {safetyFactor.toFixed(2)}
+                      <span className="text-gray-500">压力线贴合度</span>
+                      <span className={`font-bold ${thrustLineFit < 80 ? 'text-red-400' : thrustLineFit < 88 ? 'text-yellow-400' : 'text-green-400'}`}>
+                        {thrustLineFit.toFixed(0)}%
                       </span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -1155,12 +1193,15 @@ function BridgePage() {
                     </div>
                     <div className="text-[10px] text-center mt-1">
                       {peakStress > 100 ? (
-                        <span className="text-red-400">接近极限承载力 — 赵州桥敞肩拱设计有效分散应力</span>
+                        <span className="text-red-400">拱脚压应力和水平推力显著升高，仍以受压工作为主</span>
                       ) : peakStress > 70 ? (
-                        <span className="text-yellow-400">中等应力水平 — 拱圈均匀受力</span>
+                        <span className="text-yellow-400">1/4 跨与拱脚最敏感，敞肩小拱仍在帮助主拱调节压力线</span>
                       ) : (
-                        <span className="text-green-400">安全范围 — 结构完好</span>
+                        <span className="text-green-400">主拱、敞肩小拱与桥台共同工作，受力分布接近论文描述</span>
                       )}
+                    </div>
+                    <div className="text-[10px] text-gray-500 leading-relaxed">
+                      图中数值为基于论文结论构建的相对受力指标，用于展示受压分布趋势，不代表实桥实测 MPa。
                     </div>
                   </div>
                 )}
@@ -1168,9 +1209,9 @@ function BridgePage() {
             </div>
 
             {/* 荷载控制 */}
-            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
-              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">载荷控制</h3>
-              <div className="space-y-3">
+            <div className="gold-border rounded-lg p-3.5 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">载荷控制</h3>
+              <div className="space-y-2.5">
                 <div className="text-xs text-gray-400 bg-imperial-gold/5 px-2 py-1.5 rounded">
                   <span className="text-imperial-gold/80">着力点位置：</span>
                   <span className="text-imperial-gold font-bold ml-1">
@@ -1209,7 +1250,7 @@ function BridgePage() {
             </div>
 
             {/* 动态应力分布图表 */}
-            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+            <div className="gold-border rounded-lg p-3.5 bg-imperial-deeper/50 md:col-span-2 lg:col-span-1">
               <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2">
                 应力分布
                 {isQuaking && <span className="text-red-400 text-[10px] ml-2 animate-pulse">实时更新</span>}
@@ -1217,19 +1258,19 @@ function BridgePage() {
               <ReactEChartsCore
                 echarts={echarts}
                 option={getDynamicStressChartOption(load, forcePosition, earthquakePreset.intensity, earthquakeTime, isQuaking)}
-                style={{ height: 200 }}
+                style={{ height: 170 }}
                 opts={{ renderer: 'canvas' }}
                 notMerge
               />
               <p className="text-xs text-gray-500 mt-2 text-center">
-                {isQuaking ? '地震作用下各截面应力动态变化' : '点击桥面金色圆点可改变着力点位置'}
+                {isQuaking ? '地震作用下拱脚与 1/4 跨的压应力响应更敏感' : '点击桥面金色圆点可观察不同荷载位置下的受压转移'}
               </p>
             </div>
 
             {/* 桥梁信息卡片 */}
-            <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
-              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">桥梁档案</h3>
-              <div className="space-y-2 text-xs">
+            <div className="gold-border rounded-lg p-3.5 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">桥梁档案</h3>
+              <div className="space-y-1.5 text-xs">
                 {Object.entries({
                   '名称': BRIDGE_INFO.name,
                   '建造者': BRIDGE_INFO.builder,
@@ -1244,71 +1285,90 @@ function BridgePage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 pt-3 border-t border-imperial-gold/10">
+              <div className="mt-2.5 pt-2.5 border-t border-imperial-gold/10">
                 <p className="text-gray-400 text-xs leading-relaxed">
                   <span className="text-imperial-gold">敞肩拱创举：</span>
                   {BRIDGE_INFO.feature}
                 </p>
               </div>
             </div>
+
+            <div className="gold-border rounded-lg p-3.5 bg-imperial-deeper/50">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">论文校正要点</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {PAPER_METRICS.map((item) => (
+                  <div key={item.label} className="rounded-lg border border-imperial-gold/10 bg-black/20 p-2.5">
+                    <div className="text-[10px] text-gray-500">{item.label}</div>
+                    <div className="text-imperial-gold font-bold text-sm mt-1">{item.value}</div>
+                    <div className="text-[10px] text-gray-400 mt-1 leading-relaxed">{item.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 底部地震波时程图 + 抗震解析 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-4">
           {/* 地震波加速度时程 */}
-          <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
+          <div className="lg:col-span-5 gold-border rounded-lg p-3.5 bg-imperial-deeper/50">
             <ReactEChartsCore
               echarts={echarts}
               option={getSeismicWaveChartOption(earthquakePreset.intensity, earthquakeTime, isQuaking)}
-              style={{ height: 260 }}
+              style={{ height: 220 }}
               opts={{ renderer: 'canvas' }}
               notMerge
             />
             <div className="mt-2 text-[11px] text-gray-500 text-center">
-              模拟地震加速度时程曲线（峰值加速度 = {(earthquakePreset.intensity * 9.8 * 0.6).toFixed(1)} m/s²）
+              教学用地震输入时程（峰值加速度 = {(earthquakePreset.intensity * 9.8 * 0.6).toFixed(1)} m/s²），用于观察响应趋势而非复现实测地震记录。
             </div>
           </div>
 
           {/* 赵州桥抗震机理解析 */}
-          <div className="gold-border rounded-lg p-4 bg-imperial-deeper/50">
-            <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-3">赵州桥抗震机理</h3>
-            <div className="space-y-3 text-xs text-gray-400 leading-relaxed">
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded bg-green-900/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-green-400 text-[10px] font-bold">1</span>
-                </div>
-                <div>
-                  <span className="text-imperial-gold font-bold">敞肩拱减重：</span>
-                  四个小拱减轻桥身自重约 15.6%，降低地震惯性力，同时允许洪水通过，减少水平推力。
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded bg-blue-900/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-blue-400 text-[10px] font-bold">2</span>
-                </div>
-                <div>
-                  <span className="text-imperial-gold font-bold">28道纵向分券：</span>
-                  独立拱券之间可微小错动，形成天然的"隔震层"，将地震能量分散耗散而非集中传递。
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded bg-yellow-900/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-yellow-400 text-[10px] font-bold">3</span>
-                </div>
-                <div>
-                  <span className="text-imperial-gold font-bold">极小矢跨比：</span>
-                  1:5.12 的矢跨比使拱圈扁平，水平推力较大但竖向惯性力小，应力集中于拱脚并由坚固桥台承接。
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded bg-red-900/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-red-400 text-[10px] font-bold">4</span>
-                </div>
-                <div>
-                  <span className="text-imperial-gold font-bold">历史验证：</span>
-                  1400余年间经历了至少 8 次大地震（包括 1966 年邢台 7.2 级地震），主体结构完好无损。
-                </div>
+          <div className="lg:col-span-7 gold-border rounded-lg p-3.5 bg-imperial-deeper/50">
+            <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">赵州桥抗震机理</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-400 leading-relaxed">
+              {PAPER_BASED_HIGHLIGHTS.map((item, index) => {
+                const toneStyles: Record<string, string> = {
+                  green: 'bg-green-900/40 text-green-400',
+                  blue: 'bg-blue-900/40 text-blue-400',
+                  yellow: 'bg-yellow-900/40 text-yellow-400',
+                  red: 'bg-red-900/40 text-red-400',
+                };
+
+                return (
+                  <div key={item.title} className="flex gap-2">
+                    <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 mt-0.5 ${toneStyles[item.tone]}`}>
+                      <span className="text-[10px] font-bold">{index + 1}</span>
+                    </div>
+                    <div>
+                      <span className="text-imperial-gold font-bold">{item.title}：</span>
+                      {item.body}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="gold-border rounded-lg p-3.5 bg-imperial-deeper/50 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div className="lg:col-span-8">
+              <h3 className="text-imperial-gold text-sm font-bold tracking-wider mb-2.5">展示模块中的论文依据</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                当前桥梁模块已按论文结论校正为“圆弧主拱 + 敞肩小拱 + 28 道并列拱券 + 桥台共同承受水平推力”的结构逻辑。
+                页面中的云图、说明文字和指标卡均用于展示真实受力关系与受压主导特征，不再把赵州桥误写成普通实腹拱桥或现代隔震体系。
+              </p>
+            </div>
+            <div className="lg:col-span-4">
+              <div className="text-[11px] text-imperial-gold/80 mb-2">参考论文</div>
+              <div className="space-y-2">
+                {STRUCTURE_REFERENCES.map((item) => (
+                  <div key={item} className="rounded-lg border border-imperial-gold/10 bg-black/20 px-3 py-2 text-[11px] text-gray-400 leading-relaxed">
+                    {item}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
